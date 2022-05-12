@@ -1,5 +1,5 @@
 entity admin {
-    pubkey: text;
+    pubkey: byte_array;
 }
 entity contracts {
     key chain, pubkey;

@@ -7,7 +7,7 @@ dotenv.config({ path: path.join(__dirname, "../../../", ".env") });
 async function initialize() {
   const blockchain = (await Utils.getClient()).client;
   const user1 = createUser(process.env.ORACLE_ADMIN!.toString());
-  await blockchain.call(op("bridge.register_admin", user1.keyPair.pubKey.toString()), user1);
+  await blockchain.call(op("bridge.register_admin", user1.keyPair.pubKey), user1);
 }
 
 function createUser(privKey: string) {

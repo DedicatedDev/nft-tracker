@@ -100,11 +100,17 @@ export class MockOracle {
       if (contract.type == "ERC1155") {
         const eventFilter = contract.instance!.filters.TransferSingle();
         contract.instance?.on(eventFilter, (operator, from, to, tokenId) => {
+          console.log('====================================');
+          console.log(operator, from, to, tokenId);
+          console.log('====================================');
           this._transferOwnerShip([opTransferOwnerShip(contract, tokenId, to)]);
         });
       } else {
         const eventFilter = contract.instance!.filters.Transfer();
         contract.instance?.on(eventFilter, (from, to, tokenId) => {
+          console.log('====================================');
+          console.log(from, from, to, tokenId);
+          console.log('====================================');
           this._transferOwnerShip([opTransferOwnerShip(contract, tokenId, to)]);
         });
       }

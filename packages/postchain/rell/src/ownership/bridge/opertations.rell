@@ -1,13 +1,10 @@
-operation init() {
-    log("connection test");
-}
 operation add_contract(chain: text, pubkey: text, type: text) {
     create contracts(chain, pubkey, type);
 }
 
-operation register_admin(pubkey:text) {
-    if(admin @? {pubkey} == null){
-        create admin(pubkey);
+operation register_admin(pubkey: text) {
+    if(admin @? {byte_array(pubkey)} == null){
+        create admin(byte_array(pubkey));
     }
 }
 

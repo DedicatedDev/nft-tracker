@@ -24,7 +24,6 @@ namespace ft3 {
 
 
 namespace ownership {
-    import models: ownership.models;
     import bridge: ownership.bridge;
     import ecdsa: lib.ecdsa;
 }

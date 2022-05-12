@@ -1,7 +1,3 @@
-query test(): text {
-    log("this is test");
-    return "teste";
-}
 query get_contracts(chain: text) {
     return contracts @* {.chain == chain} (.chain,.pubkey,.type);
 }
