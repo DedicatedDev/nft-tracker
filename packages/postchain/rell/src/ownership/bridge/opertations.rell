@@ -1,4 +1,6 @@
 operation add_contract(chain: text, pubkey: text, type: text) {
+    val oracle_pubkey = get_oracle();
+    require(op_context.is_signer(oracle_pubkey), "ownership: only admin can add contracts!");
     create contracts(chain, pubkey, type);
 }
 

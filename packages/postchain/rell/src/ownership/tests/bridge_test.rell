@@ -1,11 +1,15 @@
 @test module;
 import ownership.*;
 
+function test_register_admin() {
+    rell.test.tx().op(ownership.bridge.register_admin(rell.test.keypairs.alice.pub.to_hex())).sign(rell.test.keypairs.alice).run();
+}
 function test_add_contract()  {
-    log(rell.test.keypairs.alice);
-    rell.test.tx().op(ownership.bridge.add_contract("eth_main", "34d344", "ERC1155")).sign(rell.test.keypairs.bob).run();
+    test_register_admin();
+    rell.test.tx().op(ownership.bridge.add_contract("eth_main", rell.test.keypairs.alice.pub.to_hex(), "ERC1155")).sign(rell.test.keypairs.alice).run();
 }
 
 function test_transfer_ownership()  {
-    rell.test.tx().op(ownership.bridge.transfer_ownership("eth_main", "34d345",1,"34d344")).sign(rell.test.keypairs.bob).run();
+    test_register_admin();
+    rell.test.tx().op(ownership.bridge.transfer_ownership("eth_main",rell.test.keypairs.alice.pub.to_hex(),1,"34d344")).sign(rell.test.keypairs.alice).run();
 }
