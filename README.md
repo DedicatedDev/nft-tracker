@@ -3,8 +3,6 @@
 
 - yarn
 - yarn chromia:node
-
-after run local node, 
 - yarn start:oracle
 # How to test project?
 - yarn test:rell  
