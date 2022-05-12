@@ -1,20 +1,20 @@
 @mount("ownership")
 module;
 
-import lib.originals.core.*;
-import lib.dip.attributes.*;
-import lib.originals.external.*;
-import lib.dip.core.*;
+import libs.originals.core.*;
+import libs.dip.attributes.*;
+import libs.originals.external.*;
+import libs.dip.core.*;
 
 namespace ft3 {
-    import lib.ft3.core.*;
-    import lib.ft3.account.*;
-    import lib.ft3.operations.dev_op_asset;
-    import lib.ft3.operations.dev_op_account;
-    import lib.ft3.account.operations;
-    import lib.ft3.core.operations.transfer;
-    import lib.ft3.operations.dev_op_balance;
-    import lib.ft3.operations.dev_op_rate_limit;
+    import libs.ft3.core.*;
+    import libs.ft3.account.*;
+    import libs.ft3.operations.dev_op_asset;
+    import libs.ft3.operations.dev_op_account;
+    import libs.ft3.account.operations;
+    import libs.ft3.core.operations.transfer;
+    import libs.ft3.operations.dev_op_balance;
+    import libs.ft3.operations.dev_op_rate_limit;
   }
   
   // struct module_args {
@@ -25,5 +25,5 @@ namespace ft3 {
 
 namespace ownership {
     import bridge: ownership.bridge;
-    import ecdsa: lib.ecdsa;
+    import ecdsa: libs.ecdsa;
 }

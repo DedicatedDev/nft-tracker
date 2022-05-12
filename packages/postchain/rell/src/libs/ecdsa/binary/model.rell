@@ -1,0 +1,7 @@
+enum rule_operator {
+    lt,
+    le,
+    eq,
+    ge,
+    gt
+}

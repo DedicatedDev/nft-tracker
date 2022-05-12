@@ -1,0 +1,7 @@
+struct module_args {
+	postfix: text;
+}
+
+function decorate (text): text {
+	return text + " " + chain_context.args.postfix;
+}

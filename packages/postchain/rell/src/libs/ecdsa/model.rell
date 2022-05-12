@@ -1,0 +1,7 @@
+enum recover_error {
+    no_error,
+    invalid_signature,
+    invalid_signature_length,
+    invalid_signature_s,
+    invalid_signature_v
+}

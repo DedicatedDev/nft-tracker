@@ -1,0 +1,3 @@
+@mount('ecdsa')
+module;
+import binary: ^.ecdsa.binary;

@@ -1,0 +1,150 @@
+function bitAnd(values: list<byte_array>):byte_array {
+    require(values.size() > 0, "Binary: empty list!");
+    val binarSize:integer = values[0].size();
+    var initialValue: text = byteToBin(values[0]);
+    var resultValue: text = "";
+    for(item in values) {
+        require(item.size() == binarSize, "Binary: invalid array");
+    }
+    for(itemIndex in range(values.size()-1)) {
+        val item = byteToBin(values[itemIndex+1]);
+        for( eleIndex in range(item.size())) {
+            if((initialValue[eleIndex] == "0" and item[eleIndex] == "0") or (initialValue[eleIndex] == "0" and item[eleIndex] == "1") or (initialValue[eleIndex] == "1" and item[eleIndex] == "0")) {
+                resultValue += "0";
+            } else {
+                resultValue += "1";
+            }
+        }
+    }
+    return binToHex(resultValue);
+}
+function bitOr(values: list<byte_array>):byte_array {
+    require(values.size() > 0, "Binary: empty list!");
+    val binarSize:integer = values[0].size();
+    var initialValue: text = byteToBin(values[0]);
+    var resultValue: text = "";
+    for(item in values) {
+        require(item.size() == binarSize, "Binary: invalid array");
+    }
+    for(itemIndex in range(values.size()-1)) {
+        val item = byteToBin(values[itemIndex+1]);
+        for( eleIndex in range(item.size())) {
+            if(initialValue[eleIndex] == "0" or item[eleIndex] == "0") {
+                resultValue += "0";
+            } else {
+                resultValue += "1";
+            }
+        }
+    }
+    return binToHex(resultValue);
+    //return byte_array("3023934");
+}
+function bitLeftShift(value: byte_array, bit:integer):byte_array {
+    require(value.size() > 0, "Binary: empty list!");
+    val value_bin = byteToBin(value);
+    require(bit < value_bin.size(), "Binary: invalid shift!");
+
+    val binarSize:integer = value_bin.size();
+    var shiftValue = value_bin.sub(bit,value_bin.size());
+    for(i in range(bit)) {
+        shiftValue += "0";
+    }
+    return binToHex(shiftValue);
+}
+function bitRightShift(value: byte_array, bit:integer):byte_array {
+    require(value.size() > 0, "Binary: empty list!");
+    val value_bin = byteToBin(value);
+    require(bit < value_bin.size(), "Binary: invalid shift!");
+
+    val binarSize:integer = value_bin.size();
+    var shiftValue = value_bin.sub(0,value_bin.size()-bit);
+    for(i in range(bit)) {
+        shiftValue = "0" + shiftValue;
+    }
+    return binToHex(shiftValue);
+}
+function byteToBin(value: byte_array): text {
+    val value_text: text = value.to_hex();
+    var bin: text = "";
+    for (i in range(value_text.size())) {
+        when(value_text[i]) {
+            '0' -> bin = bin + "0000";
+            '1' -> bin = bin +"0001";
+            '2' -> bin = bin +"0010";
+            '3' -> bin = bin +"0011";
+            '4' -> bin = bin +"0100";
+            '5' -> bin = bin +"0101";
+            '6' -> bin = bin +"0110";
+            '7' -> bin = bin +"0111";
+            '8' -> bin = bin +"1000";
+            '9' -> bin = bin +"1001";
+            'a' -> bin = bin +"1010";
+            'b' -> bin = bin +"1011";
+            'c' -> bin = bin +"1100";
+            'd' -> bin = bin +"1101";
+            'e' -> bin = bin +"1110";
+            'f' -> bin = bin +"1111";
+        }
+    }
+    return bin;
+}
+
+function binToHex(value: text): byte_array {
+    var hex: text = "";
+    for (i in range(value.size()/4)) {
+        val eleValue = value.sub(4*i,4*i+4);
+        when(eleValue) {
+            "0000" -> hex = hex + '0';
+            "0001" -> hex = hex + '1';
+            "0010" -> hex = hex + '2';
+            "0011" -> hex = hex + '3';
+            "0100" -> hex = hex + '4';
+            "0101" -> hex = hex + '5';
+            "0110" -> hex = hex + '6';
+            "0111" -> hex = hex + '7';
+            "1000" -> hex = hex + '8';
+            "1001" -> hex = hex + '9';
+            "1010" -> hex = hex + 'a';
+            "1011" -> hex = hex + 'b';
+            "1100" -> hex = hex + 'c';
+            "1101" -> hex = hex + 'd';
+            "1110" -> hex = hex + 'e';
+            "1111" -> hex = hex + 'f';
+        }
+    }
+    return byte_array(hex);
+}
+function byteToUint(value: byte_array):integer {
+    val hex = value.to_hex();
+    var hex_len = hex.size();
+    var compressRate = 0;
+    for(i in range(hex_len-1)) {
+        if(hex[i] == "0") {
+            compressRate += 1;
+        }else{
+            compressRate = 0;
+            break;
+        }
+    }
+    val compressedValue = hex.sub(compressRate,hex_len);
+    return integer(compressedValue,16);
+}
+
+function compare(value1:byte_array, value2:byte_array): rule_operator  {
+    val value1_hex = value1.to_hex();
+    val value2_hex = value2.to_hex();
+    if(value1_hex.size() > value2_hex.size()) {
+        return rule_operator.lt;
+    }else if(value1_hex.size() < value2_hex.size()) {
+        return rule_operator.gt;
+    }else{
+        for(i in range(value1_hex.size()-1)) {
+            if(value1_hex[i].char_at(i) > value2_hex[i].char_at(i)) {
+                return rule_operator.lt;
+            }else{
+                return rule_operator.gt;
+            }
+        }
+        return rule_operator.eq;
+    }
+}
