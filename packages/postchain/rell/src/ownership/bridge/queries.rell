@@ -1,0 +1,28 @@
+query test(): text {
+    log("this is test");
+    return "teste";
+}
+query get_contracts(chain: text) {
+    return contracts @* {.chain == chain} (.chain,.pubkey,.type);
+}
+query get_nft_history(chain: name, contract: text, nft_id: integer) {
+    val nft = nft @? { chain, contract, nft_id };
+
+    if (empty(nft)) return null;
+
+    return ownership @* { nft } (owner = .owner.id);
+    // block_height = .block_height,
+    // tx_hash = .tx_hash
+}
+
+query get_user_nfts(owner_id: text) {
+    val owner = owner @? { owner_id };
+
+    if (empty(owner)) return null;
+
+    return current_owner @* { .ownership.owner == owner } (
+        chain = .nft.chain,
+        contract = .nft.contract,
+        id = .nft.id
+    );
+}

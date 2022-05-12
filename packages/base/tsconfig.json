@@ -1,0 +1,28 @@
+{
+    "compilerOptions": {
+      "target": "es2017",
+      "module": "commonjs",
+      "moduleResolution": "node",
+      "lib": [
+        "es7",
+        "esnext.asynciterable"
+      ],
+      "experimentalDecorators": true,
+      "emitDecoratorMetadata": true,
+      "esModuleInterop": true,
+      "noImplicitAny": false,
+      "noUnusedLocals": true,
+      "baseUrl": "../base",
+      "rootDir": "../base",
+      "outDir": "../base/lib",
+      "declaration": true,
+      "sourceMap": true,
+      "skipLibCheck": true,
+      "resolveJsonModule": true
+    },
+    "include": [
+      "../base/index.ts",
+      ".env"
+    ]
+  }
+  

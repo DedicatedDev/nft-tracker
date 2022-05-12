@@ -1,0 +1,48 @@
+{
+  "name": "@hello/postchain",
+  "version": "0.0.0",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "build": "yarn chromia:node & sleep 5;yarn chromia:node:end",
+    "node:prepare": "psql -U postgres",
+    "node:run": "ts-node scripts/run-node.ts",
+    "node:stop": "killall java",
+    "test:rell": "ts-node scripts/test-rell.ts",
+    "test:mocha": "yarn chromia:node & sleep 5 && mocha --recursive -r ts-node/register test/**/*.ts --timeout 200000;yarn chromia:node:end"
+  },
+  "dependencies": {
+    "fs-extra": "^10.1.0",
+    "@snieking/fs-client": "^0.0.6"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^4.33.0",
+    "@typescript-eslint/parser": "^4.33.0",
+    "@types/fs-extra": "^9.0.13",
+    "eslint": "^7.32.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-config-standard": "^16.0.3",
+    "eslint-plugin-import": "^2.25.4",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-prettier": "^3.4.1",
+    "eslint-plugin-promise": "^5.2.0",
+    "prettier": "^2.5.1",
+    "pg": "^8.7.3",
+    "@types/pg": "^8.6.5",
+    "axios": "^0.26.1"
+  },
+  "peerDependencies": {
+    "@evm/base": "*",
+    "@types/chai": "*",
+    "@types/mocha": "*",
+    "@types/node": "*",
+    "ft3-lib": "*",
+    "chai": "*",
+    "dotenv": "*",
+    "ethers": "*",
+    "mocha": "*",
+    "ts-node": "*",
+    "typechain": "*",
+    "typescript": "*"
+  }
+}

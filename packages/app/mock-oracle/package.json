@@ -1,0 +1,34 @@
+{
+  "name": "@evm/oracle",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "@types/pg": "^8.6.5",
+    "cron": "^1.8.3",
+    "dotenv": "^16.0.0",
+    "ethers": "^5.6.4",
+    "node-cron": "^3.0.0",
+    "pg": "^8.7.3",
+    "rxjs": "^7.5.5",
+    "typescript": "^4.6.4"
+  },
+  "scripts": {
+    "start": "ts-node ./src/index.ts"
+  },
+  "devDependencies": {
+    "@types/cron": "^1.7.3",
+    "@types/node-cron": "^3.0.1",
+    "axios": "^0.27.2"
+  },
+  "peerDependencies": {
+    "@evm/base": "*",
+    "@supercharge/promise-pool": "*",
+    "ft3-lib": "*",
+    "typescript":"*",
+    "@types/node": "*",
+    "ts-node":"*",
+    "ethers": "*",
+    "dotenv": "*"
+  }
+}

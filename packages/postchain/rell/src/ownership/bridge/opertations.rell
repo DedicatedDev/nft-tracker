@@ -1,0 +1,34 @@
+operation init() {
+    log("connection test");
+}
+operation add_contract(chain: text, pubkey: text, type: text) {
+    create contracts(chain, pubkey, type);
+}
+
+operation register_admin(pubkey:text) {
+    if(admin @? {pubkey} == null){
+        create admin(pubkey);
+    }
+}
+
+operation transfer_ownership(chain: name, contract: text, nft_id: integer, owner_id: text) {
+    val oracle_pubkey = get_oracle();
+    require(op_context.is_signer(oracle_pubkey), "Only an oracle can transfer ownership");
+    if(owner @? { owner_id } == null) {
+        create owner(owner_id);
+    }
+    val owner = owner @* { owner_id };
+    if(nft @? { chain, contract, nft_id } == null) {
+        create nft (chain, contract, nft_id);
+    }
+    val nft = nft @* { chain, contract, nft_id };
+    val ownership = create ownership (
+        owner = owner[0],
+        nft = nft[0]
+    );
+    delete current_owner @? { nft[0] };
+    create current_owner (
+        ownership = ownership,
+        nft = nft[0]
+    );
+}

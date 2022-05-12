@@ -1,0 +1,74 @@
+// struct nft {
+//     chain: name;
+//     contract: byte_array;
+//     id: integer;
+//     metadata_url: byte_array;
+// }
+
+// namespace Property {
+//     var type = Attribute.I(interface, name="type");
+//     var description = Attribute.I(interface, name="description");
+//     function register(ft3.account) {
+//         InterfaceFactory.new(interface,[
+//             type:           Type(Text.T()),
+//             description:    Type(Text.T())
+//         ])
+//     }
+// }
+// namespace IERCProperties {
+//     val name = Attribute.I(interface, name="name");
+//     val description = Attribute.I(interface, name="description");
+//     val image = Attribute.I(interface, name="image");
+//     val decimals = Attribute.I(interface, name="decimals");
+//     val properties = Attribute.I(interface, name="properties");
+
+//     function register(ft3.account) {
+//         InterfaceFactory.new(interface,[
+//             name:           Type(Instance.T(), [ImplementsInterface(Property.interface), OwnerMutable()]),
+//             description:    Type(Instance.T(), [ImplementsInterface(Property.interface), OwnerMutable()]),
+//             image:          Type(Instance.T(), [ImplementsInterface(Property.interface), OwnerMutable()]),
+//         ])
+//     }
+// }
+// namespace IERCNFTMetaData {
+//     val title = Attribute.I(interface, name="title");
+//     var type = Attribute.I(interface, name="type");
+//     var properties = Attribute.I(interface, name="properties");
+
+//     function register(ft3.account) {
+//         InterfaceFactory.new(interface,[
+//             title:      Type(Text.T()),
+//             type:       Type(Text.T()),
+//             properties: Type(Instance.T(), [ImplementsInterface(IERC721Properties.interface), OwnerMutable()]),
+//         ])
+//     }
+// }
+
+// namespace IERCNFT {
+
+//     function  dependencies() = [
+//         chromia.INonFungibleOriginal.get(),
+//         chromia.ITradable.get(),
+//     ]
+
+//     val tokenId = Attribute.I(interface, name="tokenId");
+//     var contractAddress = Attribute.I(interface, name="contractAddress");
+//     var metadata = Attribute.I(interface, name="properties");
+
+//     function register(ft3.account) {
+//         InterfaceFactory.new(interface,[
+//             tokenId:            Type(Text.T()),
+//             contractAddress:    Type(Text.T()),
+//             owner:              Type(Text.T()),
+//             metadata:           Type(Instance.T(), [ImplementsInterface(IERCNFTMetaData.interface), OwnerMutable()]),
+//         ])
+//     }
+// } 
+
+// function initialize_interfaces(ft3.acc.account) {
+//     initialize_original_interfaces(account);
+//     Property.register(account);
+//     IERCProperties.register(account);
+//     IERCNFTMetaData.register(account);
+//     IERCNFT.register(account);
+// }

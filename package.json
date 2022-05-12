@@ -1,0 +1,73 @@
+{
+  "name": "@evm/monorepo",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "private": "true",
+  "workspaces": {
+    "packages": [
+      "packages/base",
+      "packages/app/aggregator",
+      "packages/app/mock-oracle",
+      "packages/external",
+      "packages/postchain"
+    ]
+  },
+  "packageManager": "yarn@3.1.0",
+  "engines": {
+    "node": ">=16"
+  },
+  "installConfig": {
+    "hoistingLimits": "workspaces"
+  },
+  "scripts": {
+    "lint": "eslintg .",
+    "lint-fix": "eslint --fix .",
+    "postinstall": "patch-package && yarn base:build",
+    "base:build": "cd packages/base && yarn build",
+    "hh:node": "cd packages/external && npx hardhat node",
+    "hh:build": "cd packages/external && npx hardhat compile --force && cd .. && yarn base:build",
+    "hh:deploy:local": "cd packages/external && npx hardhat run --network localhost scripts/deploy.ts && cd .. && yarn base:build",
+    "hh:test": "cd packages/external && npx hardhat test",
+    "chromia:node": "ts-node packages/postchain/scripts/run-node.ts",
+    "test:rell": "ts-node packages/postchain/scripts/test-rell.ts;killall java",
+    "test:mocha": "yarn chromia:node & sleep 10 && cd packages/postchain && mocha --recursive -r ts-node/register test/**/*.ts --timeout 200000;killall java",
+    "tracker": "cd packages/app/tracker && yarn start",
+    "start:oracle" : "cd packages/app/mock-oracle && yarn start"
+  },
+  "dependencies": {
+    "ft3-lib": "^3.4.2",
+    "ts-node": "^10.7.0",
+    "typescript": "^4.5.4"
+  },
+  "devDependencies": {
+    "@typechain/ethers-v5": "^10.0.0",
+    "@types/chai": "^4.3.0",
+    "@types/mocha": "^9.1.1",
+    "@types/node": "^17.0.25",
+    "chai": "^4.3.6",
+    "dotenv": "^16.0.0",
+    "eslint": "^8.15.0",
+    "@supercharge/promise-pool" : "^2.1.0",
+    "eslint-config-airbnb": "^18.2.1",
+    "eslint-config-airbnb-typescript": "^14.0.1",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-formatjs": "^2.17.9",
+    "eslint-plugin-import": "^2.25.2",
+    "eslint-plugin-jest": "^26.1.1",
+    "eslint-plugin-prettier": "^4.0.0",
+    "eslint-plugin-react": "^7.26.1",
+    "eslint-plugin-react-hooks": "^4.2.0",
+    "eslint-plugin-unused-imports": "^1.1.5",
+    "ethers": "^5.6.2",
+    "fs-extra": "^10.1.0",
+    "husky": "^3.0.5",
+    "mocha": "^9.2.2",
+    "patch-package": "^6.4.7",
+    "prop-types": "^15.7.2",
+    "tree-kill": "^1.2.2",
+    "ts-node": "^10.7.0",
+    "typechain": "^8.0.0",
+    "typescript": "^4.5.4"
+  }
+}

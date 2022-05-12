@@ -1,0 +1,20 @@
+{
+  "name": "@evm/base",
+  "version": "1.0.0",
+  "main": "lib/index.js",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "build": "tsc --preserveSymlinks"
+  },
+  "peerDependencies": {
+    "@ethersproject/providers": "*",
+    "@typechain/ethers-v5": "*",
+    "ethers": "*",
+    "typechain": "*",
+    "typescript": "*",
+    "ft3-lib": "*",
+    "dotenv": "*",
+    "find-yarn-workspace-root": "*"
+  }
+}

@@ -1,0 +1,62 @@
+diff --git a/node_modules/postchain-client/src/restclient.js b/node_modules/postchain-client/src/restclient.js
+index 63d6d90..ab939c8 100644
+--- a/node_modules/postchain-client/src/restclient.js
++++ b/node_modules/postchain-client/src/restclient.js
+@@ -141,7 +141,7 @@ exports.createRestClient = function (urlBase, blockchainRID, maxSockets) {
+                                 );
+                                 break;
+                             default:
+-                                console.log(status);
++                                //console.log(status);
+                                 reject(Error("got unexpected response from server"));
+                         }
+                     }
+@@ -175,7 +175,7 @@ function doPost(config, path, jsonObject, responseCallback) {
+             responseCallback(new Error(`Unexpected status code from server: ${statusCode}`), responseObject);
+         } else {
+             try {
+-                console.log(`Ok calling responseCallback with responseObject: ${JSON.stringify(responseObject)}`);
++                //console.log(`Ok calling responseCallback with responseObject: ${JSON.stringify(responseObject)}`);
+                 responseCallback(null, responseObject);
+             } catch (error) {
+                 console.error("restclient.doPost(): Failed to call callback function", error);
+@@ -185,7 +185,7 @@ function doPost(config, path, jsonObject, responseCallback) {
+ }
+ 
+ function get(config, path, callback) {
+-    console.log("GET URL " + url.resolve(config.urlBase, path));
++    //console.log("GET URL " + url.resolve(config.urlBase, path));
+     var options = {
+         method: 'GET', url: url.resolve(config.urlBase, path),
+         json: true, pool: config.pool
+@@ -194,8 +194,8 @@ function get(config, path, callback) {
+         if (err) callback(err);
+         else {
+             try {
+-                console.log("BODY", body);
+-                console.log(typeof body);
++                //console.log("BODY", body);
++                //console.log(typeof body);
+                 callback(null, response.statusCode, body);
+             } catch (e) {
+                 console.error("restclient.get(): Failed to call callback function", e);
+@@ -205,7 +205,7 @@ function get(config, path, callback) {
+ }
+ 
+ function post(config, path, jsonBody, callback) {
+-    console.log("POST URL " + url.resolve(config.urlBase, path));
++    //console.log("POST URL " + url.resolve(config.urlBase, path));
+     let options = {
+         method: 'POST', url: url.resolve(config.urlBase, path),
+         json: true, body: jsonBody, pool: config.pool
+@@ -214,8 +214,8 @@ function post(config, path, jsonBody, callback) {
+         if (err) callback(err);
+         else {
+             try {
+-                console.log(body);
+-                console.log(typeof body);
++                //console.log(body);
++                //console.log(typeof body);
+                 callback(null, response.statusCode, body !== null ? body : null);
+             } catch (e) {
+                 callback(e);

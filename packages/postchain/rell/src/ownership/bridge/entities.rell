@@ -1,0 +1,34 @@
+entity admin {
+    pubkey: text;
+}
+entity contracts {
+    key chain, pubkey;
+    chain: text;
+    pubkey: text;
+    type: text;
+}
+
+entity owner {
+    key id: text;
+}
+
+entity nft {
+    key chain, contract, id;
+    chain: name;
+    contract: text;
+    id: integer;
+}
+
+entity ownership {
+    index owner, nft;
+    //block_height: integer;
+    //tx_hash: byte_array;
+}
+
+entity current_owner {
+    key nft;
+    index ownership;
+}
+
+
+
