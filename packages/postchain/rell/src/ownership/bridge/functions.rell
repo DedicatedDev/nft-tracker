@@ -1,5 +1,5 @@
 function get_oracle(): byte_array  {
     val admin = admin @* {} (.pubkey);
-    require(admin.size() != 0, "not registered admin");
+    require(admin.size() != 0, "bridge: not registered admin");
     return admin[0];
 }

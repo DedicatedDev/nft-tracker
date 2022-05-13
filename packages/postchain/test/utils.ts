@@ -1,8 +1,6 @@
 import { PostChainConfig as config} from "@evm/base";
 import { FlagsType, KeyPair, Postchain, SingleSignatureAuthDescriptor, User } from "ft3-lib";
 import axios from "axios";
-//import FakeDirectoryService from "./utils/fake-directory-service";
-
 export const Utils = {
   getClient: async () => {
     const res = await axios.get(`${config.networks.localhost.nodeUrl}/brid/iid_0`);

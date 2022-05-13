@@ -1,8 +1,0 @@
-@mount('originals')
-module;
-
-namespace Originals {
-	import ^.external;
-	import ^.external.dev;
-	import ^.core.*;
-}

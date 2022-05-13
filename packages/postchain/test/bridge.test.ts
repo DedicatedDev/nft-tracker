@@ -18,10 +18,8 @@ describe("✅ bridge", async () => {
     const chain = await Utils.getClient();
     client = chain.client;
     chainId = chain.chainId;
-    
     //register admin
     oracleAdmin = Utils.createUser(process.env.ORACLE_ADMIN);
-    //await client.call(op("bridge.add_contract", "eth_bsc", oracleAdmin.keyPair.pubKey, "ERC1155"), oracleAdmin);
   });
 
   it("add contracts", async () => {

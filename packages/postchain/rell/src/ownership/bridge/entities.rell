@@ -21,8 +21,6 @@ entity nft {
 
 entity ownership {
     index owner, nft;
-    //block_height: integer;
-    //tx_hash: byte_array;
 }
 
 entity current_owner {

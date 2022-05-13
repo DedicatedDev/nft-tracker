@@ -5,10 +5,7 @@ query get_nft_history(chain: name, contract: text, nft_id: integer) {
     val nft = nft @? { chain, contract, nft_id };
 
     if (empty(nft)) return null;
-
     return ownership @* { nft } (owner = .owner.id);
-    // block_height = .block_height,
-    // tx_hash = .tx_hash
 }
 
 query get_user_nfts(owner_id: text) {
