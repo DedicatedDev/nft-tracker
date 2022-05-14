@@ -28,8 +28,6 @@ function test_query_nfts_by_owner() {
     test_transfer_ownership();
     val result = ownership.bridge.get_user_nfts(rell.test.keypairs.bob.pub);
     assert_false(empty(result));
-    
-    
 }
 
 //fetch nfts by owner 

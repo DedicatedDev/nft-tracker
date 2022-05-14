@@ -1,6 +1,6 @@
 declare global {
     interface String {
-        encodeByte(): string;
+        encodeByte(): Buffer;
         decodeByte(): string;
     }
 }

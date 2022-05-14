@@ -1,17 +1,16 @@
-import { TextDecoder, TextEncoder } from "util";
-
 declare global {
   interface String {
-    encodeByte(): string;
+    encodeByte(): Buffer;
     decodeByte(): string;
   }
 }
-String.prototype.encodeByte = function (): string {
-  const encoder = new TextEncoder();
-  return encoder.encode(this).join("");
+String.prototype.encodeByte = function (): Buffer {
+  return Buffer.from(this, "utf-8");
 };
 String.prototype.decodeByte = function (): string {
-  const encoder = new TextDecoder();
-  return encoder.decode(this);
+  const data = this.match(/.{1,2}/g);
+  const stringBuffer: string[] = Array.from(data!);
+  const realBuffer = Buffer.from(stringBuffer.map((buf) => +`0x${buf}`));
+  return realBuffer.toString("utf-8");
 };
 export {};
