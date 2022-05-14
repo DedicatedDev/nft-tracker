@@ -1,6 +1,6 @@
 import { FlagsType, KeyPair, op, SingleSignatureAuthDescriptor, User } from "ft3-lib";
 import { PostChainConfig as config } from "@evm/base";
-import { Utils } from "../test/utils";
+import { Utils } from "../test/utils/utils";
 import * as dotenv from "dotenv";
 import path from "path";
 dotenv.config({ path: path.join(__dirname, "../../../", ".env") });

@@ -13,21 +13,24 @@ operation register_admin(pubkey: text) {
 operation transfer_ownership(chain: name, contract: text, nft_id: integer, owner_id: text) {
     val oracle_pubkey = get_oracle();
     require(op_context.is_signer(oracle_pubkey), "Only an oracle can transfer ownership");
-    if(owner @? { owner_id } == null) {
+
+    if(empty(owner @? { owner_id })) {
         create owner(owner_id);
     }
-    val owner = owner @* { owner_id };
-    if(nft @? { chain, contract, nft_id } == null) {
+
+    if(empty(nft @? { chain, contract, nft_id })) {
         create nft (chain, contract, nft_id);
     }
-    val nft = nft @* { chain, contract, nft_id };
+    
+    val owner = owner @ { owner_id };
+    val nft = nft @ { chain, contract, nft_id };
     val ownership = create ownership (
-        owner = owner[0],
-        nft = nft[0]
+        owner = owner,
+        nft = nft
     );
-    delete current_owner @? { nft[0] };
+    delete current_owner @? { nft };
     create current_owner (
         ownership = ownership,
-        nft = nft[0]
+        nft = nft
     );
 }

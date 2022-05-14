@@ -3,19 +3,21 @@ query get_contracts(chain: text) {
 }
 query get_nft_history(chain: name, contract: text, nft_id: integer) {
     val nft = nft @? { chain, contract, nft_id };
-
     if (empty(nft)) return null;
     return ownership @* { nft } (owner = .owner.id);
 }
 
 query get_user_nfts(owner_id: text) {
     val owner = owner @? { owner_id };
-
     if (empty(owner)) return null;
-
     return current_owner @* { .ownership.owner == owner } (
         chain = .nft.chain,
         contract = .nft.contract,
         id = .nft.id
     );
+}
+
+query get_nfts_by_token(chain: text, contract: text) {
+    val nfts = ownership @* {.nft.chain == chain and .nft.contract == contract }(chain = .nft.chain, contract=.nft.contract, token_id = .nft.id, owner = .owner.id);
+    return nfts;
 }
