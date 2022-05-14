@@ -2,31 +2,31 @@
 import ownership.*;
 
 function test_register_admin() {
-    rell.test.tx().op(ownership.bridge.register_admin(rell.test.keypairs.alice.pub.to_hex())).sign(rell.test.keypairs.alice).run();
+    rell.test.tx().op(ownership.bridge.register_admin(rell.test.keypairs.alice.pub)).sign(rell.test.keypairs.alice).run();
 }
 function test_add_contract()  {
     test_register_admin();
-    rell.test.tx().op(ownership.bridge.add_contract("eth_main", rell.test.keypairs.alice.pub.to_hex(), "ERC1155")).sign(rell.test.keypairs.alice).run();
+    rell.test.tx().op(ownership.bridge.add_contract("eth_main", rell.test.keypairs.alice.pub, "ERC1155")).sign(rell.test.keypairs.alice).run();
 }
 
 function test_transfer_ownership()  {
     test_register_admin();
-    rell.test.tx().op(ownership.bridge.transfer_ownership("eth_main",rell.test.keypairs.alice.pub.to_hex(),1,rell.test.keypairs.bob.pub.to_hex())).sign(rell.test.keypairs.alice).run();
+    rell.test.tx().op(ownership.bridge.transfer_ownership("eth_main",rell.test.keypairs.alice.pub,1,rell.test.keypairs.bob.pub)).sign(rell.test.keypairs.alice).run();
 }
 
 //fetch nfts by contract address
 function test_query_nfts_by_token() {
     test_transfer_ownership();
-    val result = ownership.bridge.get_nfts_by_token("eth_main",rell.test.keypairs.alice.pub.to_hex());
+    val result = ownership.bridge.get_nfts_by_token("eth_main",rell.test.keypairs.alice.pub);
     assert_true(result.size()==1);
     assert_equals(result[0].chain, "eth_main");
-    assert_equals(result[0].contract, rell.test.keypairs.alice.pub.to_hex());
+    assert_equals(result[0].contract, rell.test.keypairs.alice.pub);
 }
 
 //fetch nfts by owner 
 function test_query_nfts_by_owner() {
     test_transfer_ownership();
-    val result = ownership.bridge.get_user_nfts(rell.test.keypairs.bob.pub.to_hex());
+    val result = ownership.bridge.get_user_nfts(rell.test.keypairs.bob.pub);
     assert_false(empty(result));
     
     
@@ -34,6 +34,6 @@ function test_query_nfts_by_owner() {
 
 //fetch nfts by owner 
 function test_query_nfts_by_owner_empty() {
-    val result = ownership.bridge.get_user_nfts(rell.test.keypairs.alice.pub.to_hex());
+    val result = ownership.bridge.get_user_nfts(rell.test.keypairs.alice.pub);
     assert_true(empty(result));
 }

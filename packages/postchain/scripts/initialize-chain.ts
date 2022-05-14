@@ -1,13 +1,19 @@
 import { FlagsType, KeyPair, op, SingleSignatureAuthDescriptor, User } from "ft3-lib";
 import { PostChainConfig as config } from "@evm/base";
-import { Utils } from "../test/utils/utils";
+import { Utils } from "../test/utils";
 import * as dotenv from "dotenv";
 import path from "path";
 dotenv.config({ path: path.join(__dirname, "../../../", ".env") });
 async function initialize() {
   const blockchain = (await Utils.getClient()).client;
   const user1 = createUser(process.env.ORACLE_ADMIN!.toString());
-  await blockchain.call(op("bridge.register_admin", user1.keyPair.pubKey), user1);
+  try {
+    await blockchain.call(op("bridge.register_admin", user1.keyPair.pubKey), user1);
+  } catch (error) {
+    console.log("====================================");
+    Utils.handleError(error);
+    console.log("====================================");
+  }
 }
 
 function createUser(privKey: string) {

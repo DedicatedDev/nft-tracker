@@ -4,18 +4,18 @@ entity admin {
 entity contracts {
     key chain, pubkey;
     chain: text;
-    pubkey: text;
+    pubkey: byte_array;
     type: text;
 }
 
 entity owner {
-    key id: text;
+    key id: byte_array;
 }
 
 entity nft {
     key chain, contract, id;
     chain: name;
-    contract: text;
+    contract: byte_array;
     id: integer;
 }
 

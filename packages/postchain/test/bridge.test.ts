@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { Utils } from "./utils/utils";
+import { Utils } from "./utils";
 import {
   op,
   User,
