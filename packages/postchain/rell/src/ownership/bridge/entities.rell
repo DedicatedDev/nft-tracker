@@ -1,6 +1,3 @@
-entity admin {
-    pubkey: byte_array;
-}
 entity contracts {
     key chain, pubkey;
     chain: text;

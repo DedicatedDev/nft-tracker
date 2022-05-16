@@ -1,4 +1,6 @@
 @mount('bridge')
 module;
-
+struct module_args {
+    admin_pubkey: pubkey;
+}
 

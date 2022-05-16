@@ -1,28 +1,14 @@
 operation add_contract(chain: text, pubkey: byte_array, type: text) {
-    val oracle_pubkey = get_oracle();
-    require(op_context.is_signer(oracle_pubkey), "ownership: only admin can add contracts!");
+    require(op_context.is_signer(chain_context.args.admin_pubkey), "ownership: only admin can add contracts!");
     create contracts(chain, pubkey, type);
 }
 
-operation register_admin(pubkey: byte_array) {
-    require(empty(admin @? {pubkey}), "ownership: already registered admin!");
-    create admin(pubkey);
-}
-
 operation transfer_ownership(chain: name, contract: byte_array, nft_id: integer, owner_id: byte_array) {
-    val oracle_pubkey = get_oracle();
-    require(op_context.is_signer(oracle_pubkey), "Owership: Only an oracle can transfer ownership");
+    require(op_context.is_signer(chain_context.args.admin_pubkey), "Owership: Only an oracle can transfer ownership");
 
-    if(empty(owner @? { owner_id })) {
-        create owner(owner_id);
-    }
+    val owner = owner @? { owner_id } ?: create owner(owner_id);
+    val nft = nft @? { chain, contract, nft_id } ?: create nft (chain, contract, nft_id);
 
-    if(empty(nft @? { chain, contract, nft_id })) {
-        create nft (chain, contract, nft_id);
-    }
-    
-    val owner = owner @ { owner_id };
-    val nft = nft @ { chain, contract, nft_id };
     val ownership = create ownership (
         owner = owner,
         nft = nft

@@ -1,32 +1,44 @@
 @test module;
-import ownership.*;
-
-function test_register_admin() {
-    rell.test.tx().op(ownership.bridge.register_admin(rell.test.keypairs.alice.pub)).sign(rell.test.keypairs.alice).run();
-}
+import ^^^.tests.*;
 function test_add_contract()  {
-    test_register_admin();
     rell.test.tx().op(ownership.bridge.add_contract("eth_main", rell.test.keypairs.alice.pub, "ERC1155")).sign(rell.test.keypairs.alice).run();
+    val contracts = ownership.bridge.contracts @* { 
+        .chain == "eth_main",
+        .pubkey == rell.test.keypairs.alice.pub,
+        .type == "ERC1155"
+    };
+    assert_true(contracts.size() == 1);
 }
 
 function test_transfer_ownership()  {
-    test_register_admin();
     rell.test.tx().op(ownership.bridge.transfer_ownership("eth_main",rell.test.keypairs.alice.pub,1,rell.test.keypairs.bob.pub)).sign(rell.test.keypairs.alice).run();
 }
 
 //fetch nfts by contract address
 function test_query_nfts_by_token() {
-    test_transfer_ownership();
-    val result = ownership.bridge.get_nfts_by_token("eth_main",rell.test.keypairs.alice.pub);
+    create_ownership(
+        "eth_main",
+        rell.test.keypairs.bob.pub,
+        1,
+        rell.test.keypairs.alice.pub,
+        rell.test.keypairs.alice
+    );
+    val result = ownership.bridge.get_nfts_by_token("eth_main",rell.test.keypairs.bob.pub);
     assert_true(result.size()==1);
     assert_equals(result[0].chain, "eth_main");
-    assert_equals(result[0].contract, rell.test.keypairs.alice.pub);
+    assert_equals(result[0].contract,rell.test.keypairs.bob.pub);
 }
 
 //fetch nfts by owner 
 function test_query_nfts_by_owner() {
-    test_transfer_ownership();
-    val result = ownership.bridge.get_user_nfts(rell.test.keypairs.bob.pub);
+    create_ownership(
+        "eth_main",
+        rell.test.keypairs.bob.pub,
+        1,
+        rell.test.keypairs.alice.pub,
+        rell.test.keypairs.alice
+    );
+    val result = ownership.bridge.get_user_nfts(rell.test.keypairs.alice.pub);
     assert_false(empty(result));
 }
 
