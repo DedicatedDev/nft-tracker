@@ -35,32 +35,11 @@ const startNode = async() => {
 
   return child;
 }
-function initializeBlockchain() {
-  console.log("🚀 Initializing blockchain ...");
-  const initScript = spawn("ts-node", [path.join(__dirname, "initialize-chain.ts")]);
-  initScript.stdout.on("data", function (data) {
-    console.log(data.toString());
-  });
-
-  initScript.stderr.on("data", function (data) {
-    console.log(data.toString());
-  });
-
-  initScript.on("exit", () => {
-    console.log("Blockchain initialized");
-  });
-  return initScript;
-}
 
 async function runNode() {
   const node = await startNode();
   node.on("ready", () => {
     console.log("✅ Node is ready....✅");
-    const initScript = initializeBlockchain();
-    initScript.on("error", () => {
-      console.log("Error initializing the blockchain");
-      exit();
-    });
   });
   process.on("SIGINT", () => {
     kill(node.pid as number);
