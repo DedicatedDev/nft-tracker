@@ -8,7 +8,7 @@
             <config height="0">
 				<app module="ownership">
                     <args module="ownership.bridge">
-                        <arg key="admin_pubkey"><string>02466d7fcae563e5cb09a0d1870bb580344804617879a14949cf22285f1bae3f27</string></arg>
+                        <arg key="admin_pubkey"><string>02897FAC9964FBDF97E6B83ECCBDE4A8D28729E0FB27059487D1B6B29F70B48767</string></arg>
                     </args>
                 </app>                
                

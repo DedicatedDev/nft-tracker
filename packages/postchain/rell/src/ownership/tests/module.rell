@@ -1,12 +1,3 @@
 @test module;
 import ownership.*;
 
-function create_ownership(
-    chain: text, 
-    contract: byte_array, 
-    id: integer, 
-    owner_id: byte_array,
-    admin: rell.test.keypair
-) {
-    rell.test.tx().op(ownership.bridge.transfer_ownership(chain, contract, id, owner_id)).sign(admin).run();
-}
