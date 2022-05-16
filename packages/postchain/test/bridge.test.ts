@@ -36,14 +36,14 @@ describe("✅ bridge", async () => {
     //query contract according owner
     const result = await client.query("bridge.get_nfts_by_token", {
       chain: "eth_main",
-      contract: Buffer.from(owner, "utf-8"),
+      contract: owner.encodeByte(),
     });
     expect(result.length).to.equal(1);
     const obj = JSON.parse(JSON.stringify(result));
     const chain = obj[0].chain;
     const ownerFromChain = obj[0].owner.decodeByte();
     expect(chain).to.equal("eth_main");
-    expect(ownerFromChain).to.equal(owner);
+    expect(`0x${ownerFromChain}`).to.equal(owner.toLowerCase());
   });
 
   it("query nfts by wallet address(ethereum address)", async () => {

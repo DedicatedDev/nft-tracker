@@ -40,7 +40,7 @@ export class MockOracle {
       .flat()
       .map((json) => {
         const obj = JSON.parse(JSON.stringify(json));
-        const contractInfo: ContractInfo = { chain: obj.chain, pubkey: obj.pubkey, type: obj.type };
+        const contractInfo: ContractInfo = { chain: obj.chain, pubkey: `0x${obj.pubkey}`, type: obj.type };
         return contractInfo;
       });
     this._getContracts(contracts);
