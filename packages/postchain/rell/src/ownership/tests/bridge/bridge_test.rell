@@ -54,7 +54,6 @@ function test_get_contracts() {
     assert_true(empty(result));
 }
 
-
 // //test invalid pagination. 
 // function test_invalid_pagination() {
 //     ownership.bridge.get_user_nfts(rell.test.keypairs.alice.pub,-10,20);

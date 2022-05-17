@@ -12,7 +12,7 @@ String.prototype.encodeByte = function (): Buffer {
     if (this.includes("0x")) {
       return Buffer.from(this.slice(2, this.length), "hex");
     }
-    return Buffer.from(this, "utf-8");
+    return Buffer.from(this, "hex");
   }
 };
 String.prototype.decodeByte = function (): string {
