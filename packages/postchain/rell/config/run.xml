@@ -6,36 +6,12 @@
     <chains>
         <chain name="ownership" iid="0">
             <config height="0">
-                <gtv path="blockstrategy/blockdelay">
-                    <int>5000</int>
-                </gtv>
-                <gtv path="blockstrategy/maxblocktime">
-                    <int>5000</int>
-                </gtv>
-                <gtv path="blockstrategy/maxblocktransactions">
-                    <int>500</int>
-                </gtv>
 				<app module="ownership">
-                    <args module="ownership">
-                        <arg key="asset_name"><string>Mori</string></arg>
-                        <arg key="admin_pubkey"><string>02466d7fcae563e5cb09a0d1870bb580344804617879a14949cf22285f1bae3f27</string></arg>
-                    </args>
-                    <args module="libs.ecdsa">
-                        <arg key="postfix"><string>ecdsa</string></arg>
-                    </args>
-                    <args module="libs.example">
-                        <arg key="postfix"><string>test</string></arg>
-                    </args>
-                    <args module="libs.ft3.core">
-                        <arg key="my_blockchain_name"><string>test</string></arg>
-                        <arg key="my_blockchain_website"><string>test_website</string></arg>
-                        <arg key="my_blockchain_description"><string>test_description</string></arg>
-                        <arg key="rate_limit_active"><int>0</int></arg>
-                        <arg key="rate_limit_max_points"><int>10</int></arg>
-                        <arg key="rate_limit_recovery_time"><int>5000</int></arg>
-                        <arg key="rate_limit_points_at_account_creation"><int>1</int></arg>
+                    <args module="ownership.bridge">
+                        <arg key="admin_pubkey"><string>02897FAC9964FBDF97E6B83ECCBDE4A8D28729E0FB27059487D1B6B29F70B48767</string></arg>
                     </args>
                 </app>                
+               
             </config>
         </chain>
         <test module="ownership.tests" />

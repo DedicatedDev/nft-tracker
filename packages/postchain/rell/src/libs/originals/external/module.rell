@@ -1,4 +1,0 @@
-@mount('originals')
-module;
-
-import ^.core.*;

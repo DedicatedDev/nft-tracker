@@ -6,8 +6,6 @@
 - yarn start:oracle
 # How to test project?
 - yarn test:rell  
-- yarn test:mocha 
-
 added ecdsa library also. it is verified with solidity ecdsa library and ecdsa npm module. 
 
 

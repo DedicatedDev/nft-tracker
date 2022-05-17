@@ -1,0 +1,14 @@
+function create_ownership(
+    chain: text, 
+    contract: byte_array, 
+    id: integer, 
+    owner_id: byte_array
+) {
+    val admin = admin_keypair();
+    rell.test.tx().op(ownership.bridge.transfer_ownership(chain, contract, id, owner_id)).sign(admin).run();
+}
+
+function admin_keypair() = rell.test.keypair(
+	priv = x"854D8402085EC5F737B1BE63FFD980981EED2A0DA5FAC6B4468CB1F176BA0321",
+	pub = x"02897FAC9964FBDF97E6B83ECCBDE4A8D28729E0FB27059487D1B6B29F70B48767"
+);

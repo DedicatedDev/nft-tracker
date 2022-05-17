@@ -10,6 +10,7 @@
     "node:stop": "killall java",
     "test:rell": "ts-node scripts/test-rell.ts",
     "test:mocha": "yarn chromia:node & sleep 5 && mocha --recursive -r ts-node/register test/**/*.ts --timeout 200000;yarn chromia:node:end"
+    
   },
   "dependencies": {
     "fs-extra": "^10.1.0",
