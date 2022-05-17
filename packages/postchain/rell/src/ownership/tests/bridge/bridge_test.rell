@@ -48,6 +48,13 @@ function test_query_nfts_by_owner_empty() {
     assert_true(empty(result));
 }
 
+//fetch nfts by owner 
+function test_get_contracts() {
+    val result = ownership.bridge.fetch_contracts("eth_main");
+    assert_true(empty(result));
+}
+
+
 // //test invalid pagination. 
 // function test_invalid_pagination() {
 //     ownership.bridge.get_user_nfts(rell.test.keypairs.alice.pub,-10,20);

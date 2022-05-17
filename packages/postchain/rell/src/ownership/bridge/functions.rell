@@ -1,0 +1,26 @@
+@extendable function fetch_contracts(chain: text) {
+    return contracts @* {.chain == chain} (.chain,.pubkey,.type);
+}
+
+@extendable function get_nft_history(chain: name, contract: byte_array, nft_id: integer) {
+    val nft = nft @? { chain, contract, nft_id };
+    if (empty(nft)) return null;
+    return ownership @* { nft } (owner = .owner.id);
+}
+
+@extendable function get_user_nfts(owner_id: byte_array, page: integer, count: integer) {
+    require(page >= 0 and count > 0, "owership: invalid page and count!");
+    val owner = owner @? { owner_id };
+    if (empty(owner)) return null;
+    return current_owner @* { .ownership.owner == owner } (
+        chain = .nft.chain,
+        contract = .nft.contract,
+        id = .nft.id
+    ) offset page*count limit count;
+
+}
+@extendable function get_nfts_by_token(chain: text, contract: byte_array, page: integer, count: integer) {
+    require(page >= 0 and count > 0, "owership: invalid page and count!");
+    val nfts = ownership @* {.nft.chain == chain and .nft.contract == contract }(chain = .nft.chain, contract=.nft.contract, token_id = .nft.id, owner = .owner.id) offset page*count limit count;
+    return nfts;
+}
