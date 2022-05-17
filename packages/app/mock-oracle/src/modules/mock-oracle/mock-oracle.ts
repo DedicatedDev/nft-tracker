@@ -48,15 +48,12 @@ export class MockOracle {
     await this._watch();
   }
   async saveNewContract(contracts: ContractInfo[]) {
-    try {
-      await PromisePool.withConcurrency(20)
-        .for(contracts)
-        .process(async (contract) => {
-          return await this._client.call(opAddNewContract(contract), this.user);
-        });
-    } catch (error) {
-      console.log(error);
-    }
+    const res = await PromisePool.withConcurrency(20)
+      .for(contracts)
+      .process(async (contract) => {
+        return await this._client.call(opAddNewContract(contract), this.user);
+      });
+    Utils.handlingBatchError(res.errors);
   }
   async fetchContracts(chain: SupportChainType): Promise<string[]> {
     return await this._client.query(Queries.GetContracts, { chain: chain });
@@ -89,12 +86,10 @@ export class MockOracle {
           return events.map((event) => this._treatEvent(event, contract)).flat();
         }
       });
-    try {
-      const ops = ownership.results.flat().filter((op): op is Operation => !!op);
-      await this._transferOwnerShip(ops);
-    } catch (error) {
-      Utils.handlingError(error);
-    }
+
+    Utils.handlingBatchError(ownership.errors);
+    const ops = ownership.results.flat().filter((op): op is Operation => !!op);
+    await this._transferOwnerShip(ops);
   }
   private async _watch() {
     this._contracts.map(async (contract) => {
@@ -133,5 +128,6 @@ export class MockOracle {
       .process(async (op) => {
         return await this._client.call(op, this.user);
       });
+    Utils.handlingBatchError(res.errors);
   }
 }

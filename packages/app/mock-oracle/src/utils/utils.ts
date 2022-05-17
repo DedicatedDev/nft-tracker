@@ -7,4 +7,12 @@ export const Utils = {
       process.stdout.write("\rUnexpected Error");
     }
   },
+
+  handlingBatchError: (errs: Error[]) => {
+    errs.map((err) => {
+      console.log("====================================");
+      console.log(err.message);
+      console.log("====================================");
+    });
+  },
 };
