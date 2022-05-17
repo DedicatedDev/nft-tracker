@@ -25,10 +25,10 @@ exports.ERC721ABI = erc721_json_1.default;
 exports.ERC1155ABI = erc1155_json_1.default;
 __exportStar(require("./settings/postchain.config"), exports);
 __exportStar(require("./settings/providers"), exports);
-__exportStar(require("./post-chain/operations"), exports);
-__exportStar(require("./post-chain/queries"), exports);
-__exportStar(require("./post-chain/client"), exports);
-__exportStar(require("./post-chain/byte"), exports);
+__exportStar(require("./postchain/operations"), exports);
+__exportStar(require("./postchain/queries"), exports);
+__exportStar(require("./postchain/client"), exports);
+__exportStar(require("./postchain/byte"), exports);
 __exportStar(require("./models/chain"), exports);
 __exportStar(require("./models/contract"), exports);
 //# sourceMappingURL=index.js.map

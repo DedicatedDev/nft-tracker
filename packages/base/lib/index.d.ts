@@ -61,9 +61,9 @@ export declare const ERC1155ABI: {
 };
 export * from "./settings/postchain.config";
 export * from "./settings/providers";
-export * from "./post-chain/operations";
-export * from "./post-chain/queries";
-export * from "./post-chain/client";
-export * from "./post-chain/byte";
+export * from "./postchain/operations";
+export * from "./postchain/queries";
+export * from "./postchain/client";
+export * from "./postchain/byte";
 export * from "./models/chain";
 export * from "./models/contract";
