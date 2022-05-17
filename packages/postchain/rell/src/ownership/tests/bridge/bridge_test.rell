@@ -50,7 +50,7 @@ function test_query_nfts_by_owner_empty() {
 
 //fetch nfts by owner 
 function test_get_contracts() {
-    val result = ownership.bridge.fetch_contracts("eth_main");
+    val result = ownership.bridge.get_contracts("eth_main");
     assert_true(empty(result));
 }
 
