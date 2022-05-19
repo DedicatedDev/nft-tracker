@@ -1,7 +1,7 @@
 entity contracts {
-    key chain, pubkey;
+    key chain, address;
     chain: text;
-    pubkey: byte_array;
+    address: pubkey;
     type: text;
 }
 

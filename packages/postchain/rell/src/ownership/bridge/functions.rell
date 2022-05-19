@@ -1,5 +1,5 @@
 function _get_contracts(chain: text) {
-    return contracts @* {.chain == chain} (.chain,.pubkey,.type);
+    return contracts @* {.chain == chain} (.chain,.address,.type);
 }
 
 function _get_nft_history(quiz: query_info) {

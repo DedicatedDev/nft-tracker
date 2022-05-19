@@ -1,6 +1,6 @@
-operation add_contract(chain: text, pubkey: byte_array, type: text) {
+operation add_contract(chain: text, address: pubkey, type: text) {
     require(op_context.is_signer(chain_context.args.admin_pubkey), "ownership: only admin can add contracts!");
-    create contracts(chain, pubkey, type);
+    create contracts(chain, address, type);
 }
 
 operation transfer_ownership(chain: name, contract: byte_array, nft_id: integer, owner_id: byte_array) {
