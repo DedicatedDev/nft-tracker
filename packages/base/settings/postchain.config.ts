@@ -3,12 +3,6 @@ dotenv.config();
 export const PostChainConfig = {
   rell: {
     version: "0.10.7",
-    settings: {
-      optimizer: {
-        enabled: true,
-        runs: 1,
-      },
-    },
   },
   networks: {
     localhost: {

@@ -1,0 +1,44 @@
+struct page_cursor {
+    page_size: integer;
+    mutable after_rowid: rowid;
+}
+
+struct query_info {
+    query_params: gtv;
+    mutable cursor: page_cursor;
+}
+
+struct nft_history_query {
+    chain: text;
+    contract: byte_array;
+    id: integer;
+}
+
+struct user_nfts_query {
+    owner_id: byte_array;
+}
+
+struct nfts_collection_query {
+    chain: text;
+    contract: byte_array;
+}
+struct nft_history  {
+    owner: byte_array;
+    rowid: rowid;
+}
+
+struct user_nft {
+    chain: text;
+    contract: byte_array;
+    id: integer;
+    rowid: rowid;
+}
+
+struct cursor_position  {
+    rowid: rowid;
+}
+
+
+
+
+

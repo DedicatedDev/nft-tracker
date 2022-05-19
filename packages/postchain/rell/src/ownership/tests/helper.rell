@@ -12,3 +12,14 @@ function admin_keypair() = rell.test.keypair(
 	priv = x"854D8402085EC5F737B1BE63FFD980981EED2A0DA5FAC6B4468CB1F176BA0321",
 	pub = x"02897FAC9964FBDF97E6B83ECCBDE4A8D28729E0FB27059487D1B6B29F70B48767"
 );
+
+function create_batch_ownerships(size: integer) {
+    for(token_id in range(size)) {
+        create_ownership(
+            "eth_main",
+            rell.test.keypairs.bob.pub,
+            token_id,
+            rell.test.keypairs.alice.pub
+        );
+    }
+}
