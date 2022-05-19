@@ -1,20 +1,20 @@
 @test module;
 import ^^^.tests.*;
-// function test_add_contract()  {
-//     val admin = admin_keypair();
-//     rell.test.tx().op(ownership.bridge.add_contract("eth_main", rell.test.keypairs.alice.pub, "ERC1155")).sign(admin).run();
-//     val contracts = ownership.bridge.contracts @* { 
-//         .chain == "eth_main",
-//         .pubkey == rell.test.keypairs.alice.pub,
-//         .type == "ERC1155"
-//     };
-//     assert_true(contracts.size() == 1);
-// }
+function test_add_contract()  {
+    val admin = admin_keypair();
+    rell.test.tx().op(ownership.bridge.add_contract("eth_main", rell.test.keypairs.alice.pub, "ERC1155")).sign(admin).run();
+    val contracts = ownership.bridge.contracts @* { 
+        .chain == "eth_main",
+        .pubkey == rell.test.keypairs.alice.pub,
+        .type == "ERC1155"
+    };
+    assert_true(contracts.size() == 1);
+}
 
-// function test_transfer_ownership()  {
-//     val admin = admin_keypair();
-//     rell.test.tx().op(ownership.bridge.transfer_ownership("eth_main",rell.test.keypairs.alice.pub,1,rell.test.keypairs.bob.pub)).sign(admin).run();
-// }
+function test_transfer_ownership()  {
+    val admin = admin_keypair();
+    rell.test.tx().op(ownership.bridge.transfer_ownership("eth_main",rell.test.keypairs.alice.pub,1,rell.test.keypairs.bob.pub)).sign(admin).run();
+}
 
 function test_query_nft_history() {
     create_ownership(
@@ -36,11 +36,10 @@ function test_query_nft_history() {
     );
     
     val result = ownership.bridge.get_nft_history(quiz);
-    log(result);
-
+    assert_true(result!!.data.size()==1);
 }
 
-//fetch nfts by contract address
+// //fetch nfts by contract address
 function test_query_nfts_by_token() {
     create_ownership(
         "eth_main",
@@ -52,7 +51,7 @@ function test_query_nfts_by_token() {
     val quiz = ownership.bridge.query_info(
         query_params = ownership.bridge.nfts_collection_query(
             chain = "eth_main",
-            contract = rell.test.keypairs.bob.pub,
+            contract = rell.test.keypairs.bob.pub
         ).to_gtv(),
         cursor = ownership.bridge.page_cursor(
             page_size = 150,
@@ -61,39 +60,54 @@ function test_query_nfts_by_token() {
     );
 
     val result = ownership.bridge.get_nfts_by_token(quiz);
-    assert_true(result.size()==1);
-    //assert_equals(result[0].chain, "eth_main");
-    //assert_equals(result[0].contract,rell.test.keypairs.bob.pub);
+    assert_true(result!!.data.size()==1);
+    for (i in range(result!!.data.size())) {
+        val expected = ownership.bridge.user_nft.from_gtv(result!!.data[i]);
+        assert_equals(expected.chain,"eth_main");
+        assert_equals(expected.contract,rell.test.keypairs.bob.pub);
+    }
+}
+
+//fetch nfts by owner 
+function test_query_nfts_by_owner() {
+    create_ownership(
+        "eth_main",
+        rell.test.keypairs.bob.pub,
+        1,
+        rell.test.keypairs.alice.pub
+    );
+
+    val quiz = ownership.bridge.query_info(
+        query_params = ownership.bridge.user_nfts_query (
+            owner_id = rell.test.keypairs.alice.pub
+        ).to_gtv(),
+        cursor = ownership.bridge.page_cursor(
+            page_size = 150,
+            after_rowid = rowid.from_gtv((0).to_gtv())
+        )
+    );
+
+    val result = ownership.bridge.get_user_nfts(quiz);
+    assert_true(result!!.data.size()==1);
+    for (i in range(result!!.data.size())) {
+        val expected = ownership.bridge.user_nft.from_gtv(result!!.data[i]);
+        assert_equals(expected.chain,"eth_main");
+        assert_equals(expected.contract,rell.test.keypairs.bob.pub);
+    }
 }
 
 // //fetch nfts by owner 
-// function test_query_nfts_by_owner() {
-//     create_ownership(
-//         "eth_main",
-//         rell.test.keypairs.bob.pub,
-//         1,
-//         rell.test.keypairs.alice.pub
-//     );
-//     val result = ownership.bridge.get_user_nfts(rell.test.keypairs.alice.pub,0,20);
-//     assert_false(empty(result));
-// }
+function test_query_nfts_by_owner_empty() {
+    val quiz = ownership.bridge.query_info(
+        query_params = ownership.bridge.user_nfts_query (
+            owner_id = rell.test.keypairs.alice.pub
+        ).to_gtv(),
+        cursor = ownership.bridge.page_cursor(
+            page_size = 150,
+            after_rowid = rowid.from_gtv((0).to_gtv())
+        )
+    );
 
-// //fetch nfts by owner 
-// function test_query_nfts_by_owner_empty() {
-//     val result = ownership.bridge.get_user_nfts(rell.test.keypairs.alice.pub,0,20);
-//     assert_true(empty(result));
-// }
-
-// //fetch nfts by owner 
-// function test_get_contracts() {
-//     val result = ownership.bridge.get_contracts("eth_main");
-//     assert_true(empty(result));
-// }
-
-// //test pagination performance. 
-// function test_invalid_pagination() {
-//     //creating test ownerships 
-//     create_batch_ownerships(20);
-//     val result = ownership.bridge.get_user_nfts(rell.test.keypairs.alice.pub,0,20);
-//     log(result!!.size());
-// }
+    val result = ownership.bridge.get_user_nfts(quiz);
+    assert_true(empty(result));
+}
