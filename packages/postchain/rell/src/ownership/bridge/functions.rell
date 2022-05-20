@@ -5,7 +5,7 @@ function _get_contracts(chain: text) {
 function _get_nft_history(chain: text, contract: byte_array, id: integer, cursor: page_cursor) {
     val nft = nft @? { chain, contract, id };
     if (empty(nft)) return null;
-    val data = ownership @* { nft, .rowid >= cursor.after_rowid } (nft_history(owner = .owner.id,rowid = .rowid).to_gtv()) limit cursor.page_size+1;
+    val data = ownership @* { nft, .rowid >= cursor.after_rowid } (nft_history(owner = .owner.id,row_id = .rowid).to_gtv()) limit cursor.page_size+1;
     return _manager_pagination(data,cursor); 
 }
 
@@ -17,7 +17,7 @@ function _get_user_nfts(owner_id: byte_array, cursor: page_cursor) {
             chain = .nft.chain,
             contract = .nft.contract,
             id = .nft.id,
-            rowid = .rowid
+            row_id = .rowid
         ).to_gtv()
     ) limit cursor.page_size+1;
     return _manager_pagination(data,cursor);
@@ -33,7 +33,7 @@ function _get_nfts_by_token(chain: text, contract: byte_array, cursor: page_curs
                 chain = .nft.chain,
                 contract = .nft.contract,
                 id = .nft.id,
-                rowid = .rowid
+                row_id = .rowid
             ).to_gtv()
         ) limit cursor.page_size+1;
     return _manager_pagination(data,cursor);
@@ -43,9 +43,11 @@ function _manager_pagination(data:list<gtv>, cursor: page_cursor) {
     if(data.size() == 0) return null;
     if (data.size() > max(MAX_PAGE_SIZE, cursor.page_size)) {
         val data_to_return = data.sub(0, data.size()-1);
-        val last_item = cursor_position.from_gtv(data_to_return[data_to_return.size()-1]);
+        log(data_to_return[data_to_return.size()-1]);
+        val last_item = list<gtv>.from_gtv(data_to_return[data_to_return.size()-1]);
+        val last_item_rowid = rowid.from_gtv(last_item[last_item.size()-1]);
         var next_cursor = cursor;
-        next_cursor.after_rowid = last_item.rowid;
+        next_cursor.after_rowid = last_item_rowid;
     
         return (
             cursor = ( 

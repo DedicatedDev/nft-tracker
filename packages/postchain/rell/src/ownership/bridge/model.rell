@@ -5,18 +5,18 @@ struct page_cursor {
 
 struct nft_history  {
     owner: byte_array;
-    rowid: rowid;
+    row_id: rowid;
 }
 
 struct user_nft {
     chain: text;
     contract: byte_array;
     id: integer;
-    rowid: rowid;
+    row_id: rowid;
 }
 
 struct cursor_position  {
-    rowid: rowid;
+    row_id: rowid;
 }
 
 

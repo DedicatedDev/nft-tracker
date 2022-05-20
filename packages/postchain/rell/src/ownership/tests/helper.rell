@@ -14,10 +14,11 @@ function admin_keypair() = rell.test.keypair(
 );
 
 function create_batch_ownerships(size: integer) {
+    val test_contract = x"29d8E29f41F82203b566047b5Ca4CD828F19E8E6";
     for(token_id in range(size)) {
         create_ownership(
             "eth_main",
-            rell.test.keypairs.bob.pub,
+            test_contract,
             token_id,
             rell.test.keypairs.alice.pub
         );
