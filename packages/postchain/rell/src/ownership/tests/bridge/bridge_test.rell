@@ -106,5 +106,5 @@ function test_query_nfts_batch() {
         after_rowid = rowid.from_gtv((0).to_gtv())
     );
     val result = ownership.bridge.get_user_nfts(rell.test.keypairs.alice.pub,cursor);
-    log(result);
+    assert_equals(result!!.data.size(),100);
 }
