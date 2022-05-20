@@ -24,3 +24,13 @@ function create_batch_ownerships(size: integer) {
         );
     }
 }
+
+function clean_rowid (data: list<gtv>) {
+    var cleaned_data = list<gtv>();
+    for(i in range(data.size())) {
+        var data_array = list<gtv>.from_gtv(data[i]);
+        data_array[data_array.size()-1] = (0).to_gtv();
+        cleaned_data.add(data_array.to_gtv());
+    }
+    return cleaned_data;
+}

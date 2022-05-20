@@ -51,7 +51,7 @@ function _manager_pagination(data:list<gtv>, cursor: page_cursor) {
     
         return (
             cursor = ( 
-                next = next_cursor.to_bytes().to_hex()
+                next = next_cursor.to_bytes().to_base64()
             ),
             data = data_to_return
         );
