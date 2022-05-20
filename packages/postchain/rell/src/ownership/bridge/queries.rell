@@ -5,20 +5,20 @@ query get_contracts(chain: text) {
 /**
    * quiz have to be encoded as gtv type of struct - nft_history_query in model.rell
    */
-query get_nft_history(quiz:query_info) {
-    return _get_nft_history(quiz);
+query get_nft_history(chain: text, contract: byte_array, id: integer, cursor: page_cursor) {
+    return _get_nft_history(chain,contract,id,cursor);
 }
 
 /**
    * quiz have to be encoded as gtv type of struct - user_nfts_query in model.rell
    */
-query get_user_nfts(quiz:query_info) {
-    return _get_user_nfts(quiz);
+query get_user_nfts(owner_id: byte_array, cursor: page_cursor) {
+    return _get_user_nfts(owner_id, cursor);
 }
 
 /**
    * quiz have to be encoded as gtv type of struct - nfts_collection_query in model.rell
    */
-query get_nfts_by_token(quiz:query_info) {
-    return _get_nfts_by_token(quiz);
+query get_nfts_by_token(chain: text, contract: byte_array, cursor: page_cursor) {
+    return _get_nfts_by_token(chain,contract,cursor);
 }

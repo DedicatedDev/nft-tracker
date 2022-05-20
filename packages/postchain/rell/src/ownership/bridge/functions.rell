@@ -2,35 +2,32 @@ function _get_contracts(chain: text) {
     return contracts @* {.chain == chain} (.chain,.address,.type);
 }
 
-function _get_nft_history(quiz: query_info) {
-    val params = nft_history_query.from_gtv(quiz.query_params);
-    val nft = nft @? { params.chain, params.contract, params.id };
+function _get_nft_history(chain: text, contract: byte_array, id: integer, cursor: page_cursor) {
+    val nft = nft @? { chain, contract, id };
     if (empty(nft)) return null;
-    val data = ownership @* { nft, .rowid >= quiz.cursor.after_rowid } (nft_history(owner = .owner.id,rowid = .rowid).to_gtv()) limit quiz.cursor.page_size+1;
-    return _manager_pagination(data,quiz); 
+    val data = ownership @* { nft, .rowid >= cursor.after_rowid } (nft_history(owner = .owner.id,rowid = .rowid).to_gtv()) limit cursor.page_size+1;
+    return _manager_pagination(data,cursor); 
 }
 
-function _get_user_nfts(quiz: query_info) {
-    val params = user_nfts_query.from_gtv(quiz.query_params);
-    val owner = owner @? { params.owner_id };
+function _get_user_nfts(owner_id: byte_array, cursor: page_cursor) {
+    val owner = owner @? { owner_id };
     if (empty(owner)) return null;
-    val data = current_owner @* { .ownership.owner == owner,.rowid >= quiz.cursor.after_rowid } (
+    val data = current_owner @* { .ownership.owner == owner,.rowid >= cursor.after_rowid } (
         user_nft(
             chain = .nft.chain,
             contract = .nft.contract,
             id = .nft.id,
             rowid = .rowid
         ).to_gtv()
-    ) limit quiz.cursor.page_size+1;
-    return _manager_pagination(data,quiz);
+    ) limit cursor.page_size+1;
+    return _manager_pagination(data,cursor);
 }
 
-function _get_nfts_by_token(quiz: query_info) {
-    val params = nfts_collection_query.from_gtv(quiz.query_params);
+function _get_nfts_by_token(chain: text, contract: byte_array, cursor: page_cursor) {
     val data = ownership @* {
-        .nft.chain == params.chain,
-        .nft.contract == params.contract,
-        .rowid >= quiz.cursor.after_rowid }
+        .nft.chain == chain,
+        .nft.contract == contract,
+        .rowid >= cursor.after_rowid }
         (
             user_nft(
                 chain = .nft.chain,
@@ -38,22 +35,21 @@ function _get_nfts_by_token(quiz: query_info) {
                 id = .nft.id,
                 rowid = .rowid
             ).to_gtv()
-        ) limit quiz.cursor.page_size+1;
-    return _manager_pagination(data,quiz);
+        ) limit cursor.page_size+1;
+    return _manager_pagination(data,cursor);
 }
 
-function _manager_pagination(data:list<gtv>, quiz: query_info) {
+function _manager_pagination(data:list<gtv>, cursor: page_cursor) {
     if(data.size() == 0) return null;
-    if (data.size() > max(100, quiz.cursor.page_size)) {
+    if (data.size() > max(MAX_PAGE_SIZE, cursor.page_size)) {
         val data_to_return = data.sub(0, data.size()-1);
         val last_item = cursor_position.from_gtv(data_to_return[data_to_return.size()-1]);
-        var next_quiz = quiz;
-        next_quiz.cursor.after_rowid = last_item.rowid;
+        var next_cursor = cursor;
+        next_cursor.after_rowid = last_item.rowid;
     
-        val next_cursor =  next_quiz.to_bytes().to_hex();
         return (
             cursor = ( 
-                next = next_cursor
+                next = next_cursor.to_bytes().to_hex()
             ),
             data = data_to_return
         );

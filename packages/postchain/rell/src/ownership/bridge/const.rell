@@ -1,0 +1,7 @@
+val MAX_PAGE_SIZE = 100;
+// val NULL_QUERY_RESPONSE = (
+//     cursor = (
+//       next = null
+//     ),
+//     data = list<gtv>()
+//   );
