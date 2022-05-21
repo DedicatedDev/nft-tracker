@@ -2,7 +2,7 @@ import * as dotenv from "dotenv";
 dotenv.config();
 export const PostChainConfig = {
   rell: {
-    version: "0.10.7",
+    version: "0.10.8",
   },
   networks: {
     localhost: {

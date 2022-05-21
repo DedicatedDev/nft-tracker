@@ -11,7 +11,7 @@ function _get_nft_history(chain: text, contract: byte_array, id: integer, cursor
 
 function _get_user_nfts(owner_id: byte_array, cursor: page_cursor) {
     val owner = owner @? { owner_id };
-    if (empty(owner)) return null;
+    if (empty(owner)) return NULL_QUERY_RESPONSE;
     val data = current_owner @* { .ownership.owner == owner,.rowid >= cursor.after_rowid } (
         user_nft(
             chain = .nft.chain,
@@ -40,11 +40,13 @@ function _get_nfts_by_token(chain: text, contract: byte_array, cursor: page_curs
 }
 
 function _manager_pagination(data:list<gtv>, cursor: page_cursor) {
-    if(data.size() == 0) return null;
+
+    if(data.size() == 0) return NULL_QUERY_RESPONSE;
     if (data.size() > max(MAX_PAGE_SIZE, cursor.page_size)) {
         val data_to_return = data.sub(0, data.size()-1);
-        log(data_to_return[data_to_return.size()-1]);
         val last_item = list<gtv>.from_gtv(data_to_return[data_to_return.size()-1]);
+        
+        
         val last_item_rowid = rowid.from_gtv(last_item[last_item.size()-1]);
         var next_cursor = cursor;
         next_cursor.after_rowid = last_item_rowid;
