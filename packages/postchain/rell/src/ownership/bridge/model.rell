@@ -1,9 +1,5 @@
+
 struct page_cursor {
     page_size: integer;
     after_rowid: rowid;
 }
-
-
-
-
-

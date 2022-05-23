@@ -5,7 +5,10 @@ function create_ownership(
     owner_id: byte_array
 ) {
     val admin = admin_keypair();
-    rell.test.tx().op(ownership.bridge.transfer_ownership(chain, contract, id, owner_id)).sign(admin).run();
+    rell.test.tx()
+        .op(ownership.bridge.transfer_ownership(chain, contract, id, owner_id))
+        .sign(admin)
+        .run();
 }
 
 function admin_keypair() = rell.test.keypair(
@@ -25,3 +28,12 @@ function create_batch_ownerships(size: integer) {
     }
 }
 
+function zero_rowid() = rowid.from_gtv((0).to_gtv());
+
+function first_page_cursor(size: integer) = 
+    ownership.bridge.page_cursor(
+        page_size = size,
+        after_rowid = zero_rowid()
+    )
+    .to_bytes()
+    .to_base64();

@@ -1,7 +1,8 @@
-entity contracts {
+
+entity contract {
     key chain, address;
     chain: text;
-    address: pubkey;
+    address: byte_array;
     type: text;
 }
 

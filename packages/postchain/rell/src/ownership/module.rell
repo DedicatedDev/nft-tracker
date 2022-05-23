@@ -1,5 +1,6 @@
 @mount("ownership")
 module;
+
 namespace ownership {
     import bridge: ownership.bridge;
 }
