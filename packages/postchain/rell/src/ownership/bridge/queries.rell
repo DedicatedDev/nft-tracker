@@ -2,14 +2,14 @@ query get_contracts(chain: text) {
     return _get_contracts(chain);
 }
 
-query get_nft_history(chain: text, contract: byte_array, id: integer, cursor: page_cursor) {
-    return _get_nft_history(chain,contract,id,cursor);
+query get_nft_history(chain: text, contract: byte_array, id: integer, cursor: text) {
+    return _get_nft_history(chain,contract,id, next_cursor(cursor));
 }
 
-query get_user_nfts(owner_id: byte_array, cursor: page_cursor) {
-    return _get_user_nfts(owner_id, cursor);
+query get_user_nfts(owner_id: byte_array, cursor: text) {
+    return _get_user_nfts(owner_id,next_cursor(cursor));
 }
 
-query get_nfts_by_token(chain: text, contract: byte_array, cursor: page_cursor) {
-    return _get_nfts_by_token(chain,contract,cursor);
+query get_nfts_by_token(chain: text, contract: byte_array, cursor: text) {
+    return _get_nfts_by_token(chain,contract,next_cursor(cursor));
 }

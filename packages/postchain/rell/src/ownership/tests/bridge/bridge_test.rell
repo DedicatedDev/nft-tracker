@@ -29,7 +29,7 @@ function test_query_nft_history() {
         page_size = 150,
         after_rowid = rowid.from_gtv((0).to_gtv())
     );
-    val result = ownership.bridge.get_nft_history("eth_main",test_contract,1,cursor);
+    val result = ownership.bridge.get_nft_history("eth_main",test_contract,1,cursor.to_bytes().to_base64());
     assert_true(result!!.data.size()==1);
 }
 
@@ -47,13 +47,12 @@ function test_query_nfts_by_token() {
         after_rowid = rowid.from_gtv((0).to_gtv())
     );
 
-    val result = ownership.bridge.get_nfts_by_token("eth_main",test_contract,cursor);
-    assert_equals(clean_rowid(result!!.data), [
-        ownership.bridge.user_nft(
+    val result = ownership.bridge.get_nfts_by_token("eth_main",test_contract,cursor.to_bytes().to_base64());
+    assert_equals(clean_rowid(result.data), [
+        (
           chain = "eth_main",
           contract = test_contract,
-          id = 1,
-          row_id = rowid.from_gtv((0).to_gtv())
+          id = 1
         ).to_gtv()
     ]);
 }
@@ -72,13 +71,12 @@ function test_query_nfts_by_owner() {
         after_rowid = rowid.from_gtv((0).to_gtv())
     );
 
-    val result = ownership.bridge.get_user_nfts(rell.test.keypairs.alice.pub,cursor);
-    assert_equals(clean_rowid(result!!.data), [
-        ownership.bridge.user_nft(
+    val result = ownership.bridge.get_user_nfts(rell.test.keypairs.alice.pub,cursor.to_bytes().to_base64());
+    assert_equals(clean_rowid(result.data), [
+        (
             chain = "eth_main",
             contract = test_contract,
-            id = 1,
-            row_id = rowid.from_gtv((0).to_gtv())
+            id = 1
         ).to_gtv()
     ]);
 }
@@ -89,8 +87,8 @@ function test_query_nfts_by_owner_empty() {
         page_size = 150,
         after_rowid = rowid.from_gtv((0).to_gtv())
     );
-    val result = ownership.bridge.get_user_nfts(rell.test.keypairs.alice.pub,cursor);
-    assert_true(empty(result));
+    val result = ownership.bridge.get_user_nfts(rell.test.keypairs.alice.pub,cursor.to_bytes().to_base64());
+    assert_true(empty(result.data));
 }
 
 function test_query_nfts_batch() {
@@ -101,31 +99,26 @@ function test_query_nfts_batch() {
     );
 
     //Page 1
-    val result = ownership.bridge.get_user_nfts(rell.test.keypairs.alice.pub,cursor);
+    val result = ownership.bridge.get_user_nfts(rell.test.keypairs.alice.pub,cursor.to_bytes().to_base64());
     var expected_result = list<gtv>();
     for(i in range(100)) {
         expected_result.add(
-            ownership.bridge.user_nft(
-            chain = "eth_main",
-            contract = test_contract,
-            id = i,
-            row_id = rowid.from_gtv((0).to_gtv())
-        ).to_gtv());
+          (chain = "eth_main",
+          contract = test_contract,
+          id = i).to_gtv());
     }
-    assert_equals(clean_rowid(result!!.data),expected_result);
+    assert_equals(clean_rowid(result.data),expected_result);
 
     // Page 2 
-    val next_cursor = ownership.bridge.page_cursor.from_bytes(byte_array.from_base64(result.cursor.next));
-    val result2 = ownership.bridge.get_user_nfts(rell.test.keypairs.alice.pub, next_cursor);
+    val result2 = ownership.bridge.get_user_nfts(rell.test.keypairs.alice.pub, result.cursor.next);
     expected_result.clear();
     for(i in range(99,150)) {
         expected_result.add(
-            ownership.bridge.user_nft(
-            chain = "eth_main",
-            contract = test_contract,
-            id = i,
-            row_id = rowid.from_gtv((0).to_gtv())
-        ).to_gtv());
+            (
+                chain = "eth_main",
+                contract = test_contract,
+                id = i
+            ).to_gtv());
     }
-    assert_equals(clean_rowid(result2!!.data),expected_result);
+    assert_equals(clean_rowid(result2.data),expected_result);
 }

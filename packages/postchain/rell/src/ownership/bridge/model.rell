@@ -1,6 +1,11 @@
 struct page_cursor {
     page_size: integer;
-    mutable after_rowid: rowid;
+    after_rowid: rowid;
+}
+
+struct raw_page_data {
+    data: list<gtv>;
+    row_id: rowid;
 }
 
 struct nft_history  {

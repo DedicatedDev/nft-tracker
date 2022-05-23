@@ -5,64 +5,73 @@ function _get_contracts(chain: text) {
 function _get_nft_history(chain: text, contract: byte_array, id: integer, cursor: page_cursor) {
     val nft = nft @? { chain, contract, id };
     if (empty(nft)) return null;
-    val data = ownership @* { nft, .rowid >= cursor.after_rowid } (nft_history(owner = .owner.id,row_id = .rowid).to_gtv()) limit cursor.page_size+1;
-    return _manager_pagination(data,cursor); 
+    val nft_histories = ownership @* { nft, .rowid >= cursor.after_rowid } (data=(owner = .owner.id).to_gtv(),row_id = .rowid) limit cursor.page_size+1;
+    return _make_page(nft_histories,cursor); 
 }
 
 function _get_user_nfts(owner_id: byte_array, cursor: page_cursor) {
     val owner = owner @? { owner_id };
-    if (empty(owner)) return NULL_QUERY_RESPONSE;
-    val data = current_owner @* { .ownership.owner == owner,.rowid >= cursor.after_rowid } (
-        user_nft(
+    if (empty(owner)) return null_page();
+    val user_nfts = current_owner @* { .ownership.owner == owner,.rowid >= cursor.after_rowid } (
+        data=(
             chain = .nft.chain,
             contract = .nft.contract,
-            id = .nft.id,
-            row_id = .rowid
-        ).to_gtv()
+            id = .nft.id
+        ).to_gtv(),
+        row_id = .rowid
     ) limit cursor.page_size+1;
-    return _manager_pagination(data,cursor);
+    return _make_page(user_nfts,cursor);
 }
 
 function _get_nfts_by_token(chain: text, contract: byte_array, cursor: page_cursor) {
-    val data = ownership @* {
+    val nft_collection = ownership @* {
         .nft.chain == chain,
         .nft.contract == contract,
         .rowid >= cursor.after_rowid }
         (
-            user_nft(
+            data=(
                 chain = .nft.chain,
                 contract = .nft.contract,
-                id = .nft.id,
-                row_id = .rowid
-            ).to_gtv()
+                id = .nft.id
+            ).to_gtv(),
+            row_id = .rowid
         ) limit cursor.page_size+1;
-    return _manager_pagination(data,cursor);
+    return _make_page(nft_collection,cursor);
 }
 
-function _manager_pagination(data:list<gtv>, cursor: page_cursor) {
+function _make_page(query_data:list<(data: gtv, row_id: rowid)>, cursor: page_cursor) {
 
-    if(data.size() == 0) return NULL_QUERY_RESPONSE;
-    if (data.size() > max(MAX_PAGE_SIZE, cursor.page_size)) {
-        val data_to_return = data.sub(0, data.size()-1);
-        val last_item = list<gtv>.from_gtv(data_to_return[data_to_return.size()-1]);
-        
-        
-        val last_item_rowid = rowid.from_gtv(last_item[last_item.size()-1]);
-        var next_cursor = cursor;
-        next_cursor.after_rowid = last_item_rowid;
-    
+    if(query_data.size() == 0) return null_page();
+    if (query_data.size() > max(MAX_PAGE_SIZE, cursor.page_size)) {
+        val query_data_to_return = query_data.sub(0, query_data.size()-1);
+        val last_item = query_data_to_return[query_data_to_return.size()-1];
+        val last_item_rowid = last_item.row_id;
+        val next_cursor = page_cursor(
+            page_size = cursor.page_size,
+            after_rowid = last_item_rowid
+        );
+
         return (
             cursor = ( 
                 next = next_cursor.to_bytes().to_base64()
             ),
-            data = data_to_return
+            data = query_data_to_return
         );
     } else {
         return (
             cursor = ( 
                 next = ""
             ),
-            data = data
+            data = query_data
         );
     }
 }
+
+function null_page() = (
+    cursor = (
+        next = ""
+    ),
+    data = list<(data:gtv,row_id:rowid)>()
+);
+
+function next_cursor(cursor:text) = page_cursor.from_bytes(byte_array.from_base64(cursor));
