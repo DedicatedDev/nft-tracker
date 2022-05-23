@@ -3,6 +3,14 @@ function _get_contracts(chain: text) {
     return contract @* { .chain == chain } ( .chain, .address, .type);
 }
 
+@extendable function before_transfer_ownership() {
+
+}
+
+@extendable function after_transfer_ownership() {
+    
+}
+
 function _get_nft_history(chain: text, contract: byte_array, id: integer, cursor: page_cursor) {
     val nft = nft @? { chain, contract, id };
     

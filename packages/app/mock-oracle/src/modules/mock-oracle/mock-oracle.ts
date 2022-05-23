@@ -40,7 +40,7 @@ export class MockOracle {
       .flat()
       .map((json) => {
         const obj = JSON.parse(JSON.stringify(json));
-        const contractInfo: ContractInfo = { chain: obj.chain, pubkey: `0x${obj.pubkey}`, type: obj.type };
+        const contractInfo: ContractInfo = { chain: obj.chain, address: `0x${obj.address}`, type: obj.type };
         return contractInfo;
       });
     this._getContracts(contracts);
@@ -64,7 +64,7 @@ export class MockOracle {
       const infuraInfo = infuraManager.providers(contractInfo.chain);
       const provider = new ethers.providers.JsonRpcProvider(infuraInfo.endpoints.http);
       const contract = new ethers.Contract(
-        contractInfo.pubkey,
+        contractInfo.address,
         contractInfo.type == "ERC1155" ? ERC1155ABI.abi : ERC721ABI.abi,
         provider
       );
