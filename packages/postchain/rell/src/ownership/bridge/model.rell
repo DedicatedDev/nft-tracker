@@ -3,27 +3,6 @@ struct page_cursor {
     after_rowid: rowid;
 }
 
-struct raw_page_data {
-    data: list<gtv>;
-    row_id: rowid;
-}
-
-struct nft_history  {
-    owner: byte_array;
-    row_id: rowid;
-}
-
-struct user_nft {
-    chain: text;
-    contract: byte_array;
-    id: integer;
-    row_id: rowid;
-}
-
-struct cursor_position  {
-    row_id: rowid;
-}
-
 
 
 

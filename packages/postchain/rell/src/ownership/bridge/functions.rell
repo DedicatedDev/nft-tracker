@@ -9,7 +9,7 @@ function _get_nft_history(chain: text, contract: byte_array, id: integer, cursor
     return _make_page(nft_histories,cursor); 
 }
 
-function _get_user_nfts(owner_id: byte_array, cursor: page_cursor) {
+ function _get_user_nfts(owner_id: byte_array, cursor: page_cursor) {
     val owner = owner @? { owner_id };
     if (empty(owner)) return null_page();
     val user_nfts = current_owner @* { .ownership.owner == owner,.rowid >= cursor.after_rowid } (
