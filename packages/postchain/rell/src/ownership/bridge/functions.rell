@@ -55,23 +55,23 @@ function _make_page(query_data:list<(data: gtv, row_id: rowid)>, cursor: page_cu
             cursor = ( 
                 next = next_cursor.to_bytes().to_base64()
             ),
-            data = query_data_to_return
+            data = query_data_to_return @* {} .data
         );
     } else {
         return (
             cursor = ( 
                 next = ""
             ),
-            data = query_data
+            data = query_data  @* {} .data
         );
     }
 }
 
 function null_page() = (
     cursor = (
-        next = ""
+        next = null
     ),
-    data = list<(data:gtv,row_id:rowid)>()
+    data = list<gtv>()
 );
 
 function next_cursor(cursor:text) = page_cursor.from_bytes(byte_array.from_base64(cursor));

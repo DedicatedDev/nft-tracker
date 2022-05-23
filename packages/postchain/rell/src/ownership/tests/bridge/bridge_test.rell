@@ -48,7 +48,7 @@ function test_query_nfts_by_token() {
     );
 
     val result = ownership.bridge.get_nfts_by_token("eth_main",test_contract,cursor.to_bytes().to_base64());
-    assert_equals(clean_rowid(result.data), [
+    assert_equals(result.data, [
         (
           chain = "eth_main",
           contract = test_contract,
@@ -72,7 +72,7 @@ function test_query_nfts_by_owner() {
     );
 
     val result = ownership.bridge.get_user_nfts(rell.test.keypairs.alice.pub,cursor.to_bytes().to_base64());
-    assert_equals(clean_rowid(result.data), [
+    assert_equals(result.data, [
         (
             chain = "eth_main",
             contract = test_contract,
@@ -107,10 +107,13 @@ function test_query_nfts_batch() {
           contract = test_contract,
           id = i).to_gtv());
     }
-    assert_equals(clean_rowid(result.data),expected_result);
+    assert_equals(result.data,expected_result);
 
-    // Page 2 
-    val result2 = ownership.bridge.get_user_nfts(rell.test.keypairs.alice.pub, result.cursor.next);
+    // Page 2
+    if(empty(result.cursor.next)) {
+       return; 
+    }
+    val result2 = ownership.bridge.get_user_nfts(rell.test.keypairs.alice.pub, result.cursor.next!!);
     expected_result.clear();
     for(i in range(99,150)) {
         expected_result.add(
@@ -120,5 +123,5 @@ function test_query_nfts_batch() {
                 id = i
             ).to_gtv());
     }
-    assert_equals(clean_rowid(result2.data),expected_result);
+    assert_equals(result2.data,expected_result);
 }
