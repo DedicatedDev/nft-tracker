@@ -5,7 +5,7 @@ function _get_contracts(chain: text) {
 function _get_nft_history(chain: text, contract: byte_array, id: integer, cursor: page_cursor) {
     val nft = nft @? { chain, contract, id };
     if (empty(nft)) return null;
-    val nft_histories = ownership @* { nft, .rowid >= cursor.after_rowid } (data=(owner = .owner.id).to_gtv(),row_id = .rowid) limit cursor.page_size+1;
+    val nft_histories = ownership @* { nft, .rowid >= cursor.after_rowid } (data=(owner = .owner.id).to_gtv(),row_id = .rowid) limit page_size(cursor);
     return _make_page(nft_histories,cursor); 
 }
 
@@ -19,7 +19,7 @@ function _get_user_nfts(owner_id: byte_array, cursor: page_cursor) {
             id = .nft.id
         ).to_gtv(),
         row_id = .rowid
-    ) limit cursor.page_size+1;
+    ) limit page_size(cursor);
     return _make_page(user_nfts,cursor);
 }
 
@@ -35,14 +35,14 @@ function _get_nfts_by_token(chain: text, contract: byte_array, cursor: page_curs
                 id = .nft.id
             ).to_gtv(),
             row_id = .rowid
-        ) limit cursor.page_size+1;
+        ) limit page_size(cursor);
     return _make_page(nft_collection,cursor);
 }
 
 function _make_page(query_data:list<(data: gtv, row_id: rowid)>, cursor: page_cursor) {
 
     if(query_data.size() == 0) return null_page();
-    if (query_data.size() > max(MAX_PAGE_SIZE, cursor.page_size)) {
+    if (query_data.size() > min(MAX_PAGE_SIZE, page_size(cursor))) {
         val query_data_to_return = query_data.sub(0, query_data.size()-1);
         val last_item = query_data_to_return[query_data_to_return.size()-1];
         val last_item_rowid = last_item.row_id;
@@ -75,3 +75,4 @@ function null_page() = (
 );
 
 function next_cursor(cursor:text) = page_cursor.from_bytes(byte_array.from_base64(cursor));
+function page_size(page_cursor) = min(MAX_PAGE_SIZE, page_cursor.page_size)+1;
