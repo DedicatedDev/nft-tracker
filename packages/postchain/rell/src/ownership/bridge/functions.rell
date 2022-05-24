@@ -3,14 +3,6 @@ function _get_contracts(chain: text) {
     return contract @* { .chain == chain } ( .chain, .address, .type);
 }
 
-@extendable function before_transfer_ownership() {
-
-}
-
-@extendable function after_transfer_ownership() {
-    
-}
-
 function _get_nft_history(chain: text, contract: byte_array, id: integer, cursor: page_cursor) {
     val nft = nft @? { chain, contract, id };
     
@@ -104,4 +96,8 @@ function decode_cursor(cursor: text) = page_cursor.from_bytes(byte_array.from_ba
 function page_size(page_cursor) = min(MAX_PAGE_SIZE, page_cursor.page_size);
 
 function fetch_data_size(page_cursor) = page_size(page_cursor) + 1;
+
+@extendable function before_transfer_ownership();
+
+@extendable function after_transfer_ownership();
 
