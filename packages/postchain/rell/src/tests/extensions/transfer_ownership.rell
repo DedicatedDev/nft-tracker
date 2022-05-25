@@ -1,0 +1,14 @@
+
+object ownership_transfer_extension_state {
+    mutable is_before_transfer_ownership_called: boolean = false;
+    mutable is_after_transfer_ownership_called: boolean = false;
+}
+
+
+@extend(before_transfer_ownership) function () {
+    ownership_transfer_extension_state.is_before_transfer_ownership_called = true;
+}
+
+@extend(after_transfer_ownership) function () {
+    ownership_transfer_extension_state.is_after_transfer_ownership_called = true;
+}

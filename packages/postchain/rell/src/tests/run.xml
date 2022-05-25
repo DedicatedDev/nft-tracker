@@ -1,0 +1,19 @@
+<run wipe-db="true">
+    <nodes>
+        <config src="../../config/node-config.properties" add-signers="true" />
+        <test-config src="../../config/node-config-test.properties"/>
+    </nodes>
+    <chains>
+        <chain name="ownership" iid="0">
+            <config height="0">
+				<app module="tests.bridge.app_module">
+                    <args module="ownership.bridge">
+                        <arg key="admin_pubkey"><string>02897FAC9964FBDF97E6B83ECCBDE4A8D28729E0FB27059487D1B6B29F70B48767</string></arg>
+                    </args>
+                </app>                
+               
+            </config>
+        </chain>
+        <test module="tests" />
+    </chains>
+</run>

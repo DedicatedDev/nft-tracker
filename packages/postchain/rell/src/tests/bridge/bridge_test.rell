@@ -1,6 +1,11 @@
 @test module;
 
-import ^^^.tests.*;
+import ^^^.tests.helper.*;
+import ^^.extensions;
+
+namespace ownership {
+    import ^^^.ownership.bridge;
+}
 
 val test_contract = x"29d8E29f41F82203b566047b5Ca4CD828F19E8E6";
 
@@ -134,4 +139,26 @@ function test_query_nfts_batch() {
     );
     
     assert_equals(page2.data, expected_page_2);
+}
+
+function test_before_transfer_ownership_extension_is_called() {
+    create_ownership(
+        "eth_main",
+        test_contract,
+        1,
+        rell.test.keypairs.alice.pub
+    );
+    
+    assert_true(extensions.ownership_transfer_extension_state.is_before_transfer_ownership_called);
+}
+
+function test_after_transfer_ownership_extension_is_called() {
+    create_ownership(
+        "eth_main",
+        test_contract,
+        1,
+        rell.test.keypairs.alice.pub
+    );
+    
+    assert_true(extensions.ownership_transfer_extension_state.is_before_transfer_ownership_called);
 }

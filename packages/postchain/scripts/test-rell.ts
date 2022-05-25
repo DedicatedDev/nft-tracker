@@ -9,7 +9,7 @@ export const test = async () => {
   console.log("🚀 Starting test ...");
   const commandPath = path.join(outputDir, "postchain-node", "multirun.sh");
   const sourceDir = path.join(__dirname, "..", "rell", "src");
-  const configPath = path.join(__dirname, "..", "rell", "config", "run.xml");
+  const configPath = path.join(__dirname, "..", "rell", "src", "tests", "run.xml");
 
   const child = spawn(commandPath, ["-d", sourceDir, "--test", configPath]);
   child.stdout.on("data", function (data) {
