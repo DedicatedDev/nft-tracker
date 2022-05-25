@@ -16,7 +16,7 @@ operation transfer_ownership(chain: name, contract: byte_array, nft_id: integer,
     val owner = owner @? { owner_id } ?: create owner(owner_id);
     val nft = nft @? { chain, contract, nft_id } ?: create nft (chain, contract, nft_id);
     
-    before_transfer_ownership();
+    before_transfer_ownership(chain, contract, nft_id, owner_id);
     
     val ownership = create ownership (
         owner = owner,
@@ -28,5 +28,5 @@ operation transfer_ownership(chain: name, contract: byte_array, nft_id: integer,
         nft = nft
     );
     
-    after_transfer_ownership();
+    after_transfer_ownership(chain, contract, nft_id, owner_id);
 }

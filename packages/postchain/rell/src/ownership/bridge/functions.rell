@@ -97,7 +97,7 @@ function page_size(page_cursor) = min(MAX_PAGE_SIZE, page_cursor.page_size);
 
 function fetch_data_size(page_cursor) = page_size(page_cursor) + 1;
 
-@extendable function before_transfer_ownership();
+@extendable function before_transfer_ownership(chain: name, contract: byte_array, nft_id: integer, owner_id: byte_array);
 
-@extendable function after_transfer_ownership();
+@extendable function after_transfer_ownership(chain: name, contract: byte_array, nft_id: integer, owner_id: byte_array);
 

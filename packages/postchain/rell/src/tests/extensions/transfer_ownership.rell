@@ -5,10 +5,10 @@ object ownership_transfer_extension_state {
 }
 
 
-@extend(before_transfer_ownership) function () {
+@extend(before_transfer_ownership) function (chain: name, contract: byte_array, nft_id: integer, owner_id: byte_array) {
     ownership_transfer_extension_state.is_before_transfer_ownership_called = true;
 }
 
-@extend(after_transfer_ownership) function () {
+@extend(after_transfer_ownership) function (chain: name, contract: byte_array, nft_id: integer, owner_id: byte_array) {
     ownership_transfer_extension_state.is_after_transfer_ownership_called = true;
 }
