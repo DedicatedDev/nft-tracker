@@ -20,6 +20,7 @@ import path from "path";
 import { Utils } from "../../utils/utils";
 import { EVENT_LOG_SIZE_EXCEEDED } from "../../const/error";
 import { MAXIMUM_COLLECT_NFTS, MAXIMUM_EVENT_SEARCH_DEEP } from "../../const/setting";
+import { async } from "rxjs";
 dotenv.config({ path: path.join(__dirname, "../../../../../../", ".env") });
 export class MockOracle {
   private _client!: Blockchain;
@@ -81,11 +82,11 @@ export class MockOracle {
       .process(async (contract) => {
         if (contract.type == "ERC1155") {
           const eventFilter = contract.instance!.filters.TransferSingle();
-          const events = await this._fetchEvent(contract.instance!, eventFilter) //await contract.instance!.queryFilter(eventFilter);
+          const events = await this._fetchEvent(contract.instance!, eventFilter); //await contract.instance!.queryFilter(eventFilter);
           return events.map((event) => this._treatEvent(event, contract)).flat();
         } else if (contract.type == "ERC721") {
           const eventFilter = contract.instance!.filters.Transfer();
-          const events = await this._fetchEvent(contract.instance!, eventFilter) //await contract.instance!.queryFilter(eventFilter);
+          const events = await this._fetchEvent(contract.instance!, eventFilter); //await contract.instance!.queryFilter(eventFilter);
           return events.map((event) => this._treatEvent(event, contract)).flat();
         }
       });
@@ -177,26 +178,25 @@ export class MockOracle {
     return events;
   }
 
-
-
-
   private async _watch() {
     this._contracts.map(async (contract) => {
       if (contract.type == "ERC1155") {
         const eventFilter = contract.instance!.filters.TransferSingle();
-        contract.instance?.on(eventFilter, (operator, from, to, tokenId) => {
+        contract.instance?.on(eventFilter, async (operator, from, to, tokenId) => {
           console.log("====================================");
           console.log(operator, from, to, tokenId);
           console.log("====================================");
-          this._transferOwnerShip([opTransferOwnerShip(contract, tokenId, to)]);
+          const lastBlockNumber = await contract.instance!.getBlockNumber();
+          this._transferOwnerShip([opTransferOwnerShip(contract, tokenId, to, lastBlockNumber)]);
         });
       } else {
         const eventFilter = contract.instance!.filters.Transfer();
-        contract.instance?.on(eventFilter, (from, to, tokenId) => {
+        contract.instance?.on(eventFilter, async (from, to, tokenId) => {
           console.log("====================================");
           console.log(from, from, to, tokenId);
           console.log("====================================");
-          this._transferOwnerShip([opTransferOwnerShip(contract, tokenId, to)]);
+          const lastBlockNumber = await contract.instance!.getBlockNumber();
+          this._transferOwnerShip([opTransferOwnerShip(contract, tokenId, to, lastBlockNumber)]);
         });
       }
     });
@@ -205,9 +205,9 @@ export class MockOracle {
   private _treatEvent(event: ethers.Event, contractInfo: ContractInfo): Operation {
     const args = event.args!;
     if (contractInfo.type == "ERC1155") {
-      return opTransferOwnerShip(contractInfo, +args[3].toString(), args[2]);
+      return opTransferOwnerShip(contractInfo, +args[3].toString(), args[2], event.blockNumber);
     } else {
-      return opTransferOwnerShip(contractInfo, +args[2], args[1]);
+      return opTransferOwnerShip(contractInfo, +args[2], args[1], event.blockNumber);
     }
   }
 

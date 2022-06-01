@@ -19,6 +19,7 @@ entity nft {
 
 entity ownership {
     index owner, nft;
+    block_number: integer;
 }
 
 entity current_owner {

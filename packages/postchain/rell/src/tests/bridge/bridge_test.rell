@@ -28,7 +28,27 @@ function test_add_contract()  {
 function test_transfer_ownership()  {
     val admin = admin_keypair();
     
-    ownership.bridge.transfer_ownership("eth_main", test_contract, 1, rell.test.keypairs.bob.pub)
+    ownership.bridge.transfer_ownership("eth_main", test_contract, 1, rell.test.keypairs.bob.pub, 0)
+        .sign(admin)
+        .run();
+}
+
+function test_transfer_old_ownership()  {
+    val admin = admin_keypair();
+    ownership.bridge.transfer_ownership("eth_main", test_contract, 1, rell.test.keypairs.bob.pub, 100)
+        .sign(admin)
+        .run();
+    ownership.bridge.transfer_ownership("eth_main", test_contract, 1, rell.test.keypairs.bob.pub, 10)
+        .sign(admin)
+        .run_must_fail();
+}
+
+function test_transfer_new_ownership()  {
+    val admin = admin_keypair();
+    ownership.bridge.transfer_ownership("eth_main", test_contract, 1, rell.test.keypairs.bob.pub, 10)
+        .sign(admin)
+        .run();
+    ownership.bridge.transfer_ownership("eth_main", test_contract, 1, rell.test.keypairs.bob.pub, 100)
         .sign(admin)
         .run();
 }
