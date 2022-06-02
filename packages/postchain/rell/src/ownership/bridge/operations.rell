@@ -8,30 +8,17 @@ operation add_contract(chain: text, address: pubkey, type: text) {
 }
 
 operation transfer_ownership(chain: name, contract: byte_array, nft_id: integer, owner_id: byte_array, block_number: integer) {
-    require(
-        op_context.is_signer(chain_context.args.admin_pubkey), 
-        "Owership: Only an oracle can transfer ownership"
-    );
+    _transfer_ownership(chain, contract, nft_id, owner_id, block_number);
+}
 
-    val owner = owner @? { owner_id } ?: create owner(owner_id);
-    val nft = nft @? { chain, contract, nft_id } ?: create nft (chain, contract, nft_id);
-    
-    before_transfer_ownership(chain, contract, nft_id, owner_id);
-    
-    val old_ownership = ownership @? { .owner == owner, .nft == nft, .block_number >= block_number }; 
-    require(empty(old_ownership), "ownership: ownership already exists!");
-
-    val ownership = create ownership (
-        owner = owner,
-        nft = nft,
-        block_number
-    );
-
-    delete current_owner @? { nft };
-    create current_owner (
-        ownership = ownership,
-        nft = nft
-    );
-    
-    after_transfer_ownership(chain, contract, nft_id, owner_id);
+operation transfer_batch_ownership(ownerships: list<nft_ownership>) {
+    for (idx in range(ownerships.size())) {
+        _transfer_ownership(
+            ownerships[idx].chain,
+            ownerships[idx].contract,
+            ownerships[idx].nft_id,
+            ownerships[idx].owner_id,
+            ownerships[idx].block_number
+        );
+    }
 }

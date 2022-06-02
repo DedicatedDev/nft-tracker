@@ -1,4 +1,37 @@
 
+function _transfer_ownership(chain: name, contract: byte_array, nft_id: integer, owner_id: byte_array, block_number: integer) {
+    require(
+        op_context.is_signer(chain_context.args.admin_pubkey), 
+        "Owership: Only an oracle can transfer ownership"
+    );
+
+    val owner = owner @? { owner_id } ?: create owner(owner_id);
+    val nft = nft @? { chain, contract, nft_id } ?: create nft (chain, contract, nft_id);
+    
+    before_transfer_ownership(chain, contract, nft_id, owner_id);
+    
+    val old_ownership = ownership @? { .owner == owner, .nft == nft, .block_number >= block_number }; 
+    
+    if(empty(old_ownership) == false) {
+        return;
+    }
+
+    val ownership = create ownership (
+        owner = owner,
+        nft = nft,
+        block_number
+    );
+
+    delete current_owner @? { nft };
+    create current_owner (
+        ownership = ownership,
+        nft = nft
+    );
+    
+    after_transfer_ownership(chain, contract, nft_id, owner_id);
+}
+
+
 function _get_contracts(chain: text) {
     return contract @* { .chain == chain } ( .chain, .address, .type);
 }
@@ -18,7 +51,7 @@ function _get_nft_history(chain: text, contract: byte_array, id: integer, cursor
     return _make_page(nft_history, cursor); 
 }
 
- function _get_user_nfts(owner_id: byte_array, cursor: page_cursor) {
+function _get_user_nfts(owner_id: byte_array, cursor: page_cursor) {
     val owner = owner @? { owner_id };
     if (empty(owner)) return null_page();
     
@@ -81,6 +114,7 @@ function _make_page(query_data: list<(data: gtv, rowid: rowid)>, cursor: page_cu
         );
     }
 }
+
 
 function null_page() = (
     cursor = (
