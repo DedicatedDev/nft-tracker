@@ -129,7 +129,7 @@ export class MockOracle {
     }
     try {
       let lastEvents = await contract.queryFilter(filter, lastBlockNumber - defaultSearchDeep, "latest");
-      events = events.concat(lastEvents);
+      events = events.concat(lastEvents.reverse());
       lastBlockNumber = lastBlockNumber - defaultSearchDeep;
       while (lastBlockNumber! > 0) {
         const startBlockNumber: number = lastBlockNumber - defaultSearchDeep;
@@ -142,7 +142,7 @@ export class MockOracle {
           chalk.green(events.length),
           `\n`
         );
-        lastEvents = await contract.queryFilter(filter, startBlockNumber, lastBlockNumber);
+        lastEvents = (await contract.queryFilter(filter, startBlockNumber, lastBlockNumber)).sort();
         events = events.concat(lastEvents);
         if (lastEvents.length == 0) {
           if (defaultSearchDeep < MAXIMUM_EVENT_SEARCH_DEEP && maximumRetry == 1) {
@@ -150,9 +150,8 @@ export class MockOracle {
           } else if (defaultSearchDeep < MAXIMUM_EVENT_SEARCH_DEEP && maximumRetry > 1) {
             defaultSearchDeep = MAXIMUM_EVENT_SEARCH_DEEP;
           }
-          maximumRetry -= 1;
         }
-        if (maximumRetry < 0 || lastBlockNumber == 0 || events.length > MAXIMUM_COLLECT_NFTS) {
+        if (maximumRetry < 0 || lastBlockNumber == 0) {
           lastBlockNumber = -1;
           break;
         }
@@ -204,6 +203,8 @@ export class MockOracle {
 
   private _treatEvent(event: ethers.Event, contractInfo: ContractInfo): Operation {
     const args = event.args!;
+    //const tx = await event.getTransaction()
+    //const timestamp = tx.timestamp ?? Date.now()
     if (contractInfo.type == "ERC1155") {
       return opTransferOwnerShip(contractInfo, +args[3].toString(), args[2], event.blockNumber);
     } else {
