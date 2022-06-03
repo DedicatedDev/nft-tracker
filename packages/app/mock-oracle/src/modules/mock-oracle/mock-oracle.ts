@@ -203,8 +203,6 @@ export class MockOracle {
 
   private _treatEvent(event: ethers.Event, contractInfo: ContractInfo): Operation {
     const args = event.args!;
-    //const tx = await event.getTransaction()
-    //const timestamp = tx.timestamp ?? Date.now()
     if (contractInfo.type == "ERC1155") {
       return opTransferOwnerShip(contractInfo, +args[3].toString(), args[2], event.blockNumber);
     } else {
