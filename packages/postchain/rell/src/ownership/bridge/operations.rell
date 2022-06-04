@@ -1,10 +1,5 @@
 operation add_contract(chain: text, address: pubkey, type: text) {
-    require(
-        op_context.is_signer(chain_context.args.admin_pubkey), 
-        "ownership: only admin can add contracts!"
-    );
-    
-    create contract(chain, address, type);
+    _add_contract(chain, address, type);
 }
 
 operation transfer_ownership(chain: name, contract: byte_array, nft_id: integer, owner_id: byte_array, block_number: integer) {
@@ -13,7 +8,7 @@ operation transfer_ownership(chain: name, contract: byte_array, nft_id: integer,
 
 operation transfer_batch_ownership(
     chain:text, 
-    contract: byte_array, 
+    contract_address: byte_array, 
     tokens: list<(token_id: integer, owner_id: byte_array, block_number: integer)>
 ) {
 
@@ -24,7 +19,7 @@ operation transfer_batch_ownership(
     for (idx in range(tokens.size())) {
         _transfer_ownership(
             chain,
-            contract,
+            contract_address,
             tokens[idx].token_id,
             tokens[idx].owner_id,
             tokens[idx].block_number
@@ -36,11 +31,12 @@ operation transfer_batch_ownership(
     */
     val block_info = ownership @* { 
         .nft.chain == chain, 
-        .nft.contract == contract 
+        .nft.contract == contract_address 
     } ( @sort .block_number);
 
     if(block_info.size()>0){
-        update trace_status @? {.chain == chain, .contract == contract} ( 
+        val _contract = contract @? { .chain == chain, .address == contract_address } ?: _add_contract(chain, contract_address, "");
+        update trace_status @? { .contract == _contract} ( 
             last_block_number = block_info[block_info.size() - 1],
             mined_block_number = block_info[0]
         );
@@ -48,8 +44,10 @@ operation transfer_batch_ownership(
 
 }
 
-operation report_mined(chain: text, contract: byte_array, status: boolean) {
-    update trace_status @ {.chain == chain, .contract == contract} ( 
+operation report_mined(chain: text, contract_address: byte_array, status: boolean) {
+    val _contract = contract @ { .chain == chain, .address == contract_address };
+    update trace_status @? { .contract == _contract } ( 
         mined = status
     );
+    
 }

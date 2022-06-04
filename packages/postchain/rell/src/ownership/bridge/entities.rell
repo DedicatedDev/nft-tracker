@@ -28,9 +28,7 @@ entity current_owner {
 }
 
 entity trace_status {
-    key chain, contract;
-    chain: text;
-    contract: byte_array;
+    index contract;
     mutable last_block_number: integer;
     mutable mined_block_number: integer;
     mutable mined: boolean;

@@ -39,17 +39,30 @@ export class MockOracle {
       .process(async (chain) => {
         return await this.fetchContracts(chain);
       });
+    // console.log('====================================');
+    // console.log(res);
+    // console.log('====================================');
     const contracts = res.results
       .filter((items) => items.length != 0)
       .flat()
       .map((json) => {
         const obj = JSON.parse(JSON.stringify(json));
-        const contractInfo: ContractInfo = { chain: obj.chain, address: `0x${obj.address}`, type: obj.type };
+        const contractInfo: ContractInfo = {
+          chain: obj.chain,
+          address: `0x${obj.address}`,
+          type: obj.type,
+          lastBlockNumber: obj.last_block_number,
+          minedBlockNumber: obj.mined_block_number,
+          mined: obj.mined,
+        };
         return contractInfo;
       });
-    this._getContracts(contracts);
-    await this._fetchAllEvents();
-    await this._watch();
+    console.log("====================================");
+    console.log(contracts);
+    console.log("====================================");
+    // this._getContracts(contracts);
+    // await this._fetchAllEvents();
+    // await this._watch();
   }
   async saveNewContract(contracts: ContractInfo[]) {
     const res = await PromisePool.withConcurrency(20)
@@ -82,11 +95,11 @@ export class MockOracle {
       .process(async (contract) => {
         if (contract.type == "ERC1155") {
           const eventFilter = contract.instance!.filters.TransferSingle();
-          const events = await this._fetchEvent(contract.instance!, eventFilter); //await contract.instance!.queryFilter(eventFilter);
+          const events = await this._fetchEvent(contract, eventFilter); //await contract.instance!.queryFilter(eventFilter);
           return events.map((event) => this._treatEvent(event, contract)).flat();
         } else if (contract.type == "ERC721") {
           const eventFilter = contract.instance!.filters.Transfer();
-          const events = await this._fetchEvent(contract.instance!, eventFilter); //await contract.instance!.queryFilter(eventFilter);
+          const events = await this._fetchEvent(contract, eventFilter); //await contract.instance!.queryFilter(eventFilter);
           return events.map((event) => this._treatEvent(event, contract)).flat();
         }
       });
@@ -95,14 +108,19 @@ export class MockOracle {
     const ops = ownership.results.flat().filter((op): op is Operation => !!op);
     await this._transferOwnerShip(ops);
   }
+  private async _treatEvents(events: ethers.Event[], contract: ContractInfo) {
+    const ops = events.map((event) => this._treatEvent(event, contract));
+    await this._transferOwnerShip(ops);
+  }
 
-  private async _fetchEvent(contract: ethers.Contract, filter: ethers.EventFilter): Promise<ethers.Event[]> {
+  private async _fetchEvent(contract: ContractInfo, filter: ethers.EventFilter): Promise<ethers.Event[]> {
     let events: ethers.Event[] = [];
     try {
-      events = await contract.queryFilter(filter);
+      events = await contract.instance!.queryFilter(filter);
     } catch (error) {
       if (error instanceof Error && error.message.includes(EVENT_LOG_SIZE_EXCEEDED)) {
-        events = await this._paginationEvents(contract, filter, []);
+        this._improvedPaginationEvents(contract, filter);
+        //events = await this._paginationEvents(contract, filter, []);
       } else {
         Utils.handlingError(error);
       }
@@ -175,6 +193,73 @@ export class MockOracle {
       }
     }
     return events;
+  }
+
+  private async _improvedPaginationEvents(
+    contract: ContractInfo,
+    filter: ethers.EventFilter,
+    lastBlockNumber?: number,
+    defaultSearchDeep?: number,
+    maximumRetry?: number
+  ) {
+    if (maximumRetry == null) {
+      lastBlockNumber = await contract.instance!.provider.getBlockNumber();
+      maximumRetry = Math.floor(Math.log2(lastBlockNumber));
+    }
+
+    if (maximumRetry <= 0) {
+      return;
+    }
+
+    if (lastBlockNumber == null) {
+      lastBlockNumber = await contract.instance!.provider.getBlockNumber();
+    }
+
+    if (defaultSearchDeep == null) {
+      defaultSearchDeep = lastBlockNumber;
+    }
+
+    try {
+      while (lastBlockNumber! > 0) {
+        const startBlockNumber: number = lastBlockNumber - defaultSearchDeep;
+        let lastEvents = await contract.instance!.queryFilter(filter, startBlockNumber, lastBlockNumber);
+        console.log(
+          chalk.red(" BlockNumber: "),
+          chalk.green(lastBlockNumber),
+          chalk.red(" SearchDeep: "),
+          chalk.green(defaultSearchDeep),
+          chalk.red(" CollectedEvents: "),
+          chalk.green(lastEvents.length),
+          `\n`
+        );
+        await this._treatEvents(lastEvents.reverse(), contract);
+
+        if (lastEvents.length == 0) {
+          if (defaultSearchDeep < MAXIMUM_EVENT_SEARCH_DEEP && maximumRetry == 1) {
+            defaultSearchDeep = startBlockNumber;
+          } else if (defaultSearchDeep < MAXIMUM_EVENT_SEARCH_DEEP && maximumRetry > 1) {
+            defaultSearchDeep = MAXIMUM_EVENT_SEARCH_DEEP;
+          }
+        }
+        if (maximumRetry < 0 || lastBlockNumber == 0) {
+          lastBlockNumber = -1;
+          break;
+        }
+        lastBlockNumber = startBlockNumber;
+      }
+    } catch (error) {
+      if (error instanceof Error && error.message.includes(EVENT_LOG_SIZE_EXCEEDED)) {
+        await this._improvedPaginationEvents(
+          contract,
+          filter,
+          lastBlockNumber,
+          Math.floor(defaultSearchDeep / 2),
+          maximumRetry - 1
+        );
+      } else {
+        Utils.handlingError(error);
+      }
+    }
   }
 
   private async _watch() {

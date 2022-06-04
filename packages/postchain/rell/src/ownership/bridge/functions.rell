@@ -17,7 +17,7 @@ function _transfer_ownership(chain: name, contract: byte_array, nft_id: integer,
     );
 
     val recent_ownership = ownership @* { .owner == owner, .nft == nft, .block_number > block_number }; 
-    
+
     if(recent_ownership.size() != 0) {
         return;
     }
@@ -32,9 +32,31 @@ function _transfer_ownership(chain: name, contract: byte_array, nft_id: integer,
     after_transfer_ownership(chain, contract, nft_id, owner_id);
 }
 
-
+function _add_contract(chain: text, address: pubkey, type: text) {
+    require(
+        op_context.is_signer(chain_context.args.admin_pubkey), 
+        "ownership: only admin can add contracts!"
+    );
+    val _contract = create contract(chain, address, type);
+    create trace_status(
+        _contract,
+        last_block_number = 0, 
+        mined_block_number = 0,
+        mined = false
+    );
+    return _contract;
+}
 function _get_contracts(chain: text) {
-    return contract @* { .chain == chain } ( .chain, .address, .type);
+    return (c:contract, t: trace_status) @* { 
+        c.chain == chain and 
+        t.contract == c 
+    } ( .chain, 
+        .address, 
+        .type, 
+        .last_block_number,
+        .mined_block_number,
+        .mined
+    );
 }
 
 function _get_nft_history(chain: text, contract: byte_array, id: integer, cursor: page_cursor) {

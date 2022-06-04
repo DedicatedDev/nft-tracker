@@ -5,5 +5,9 @@ export interface ContractInfo {
   address: string;
   chain: SupportChainType;
   type: NFTContractType;
+  lastBlockNumber?: number;
+  minedBlockNumber?: number;
+  mined?: boolean;
   instance?: ethers.Contract;
 }
+
