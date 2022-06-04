@@ -11,14 +11,39 @@ operation transfer_ownership(chain: name, contract: byte_array, nft_id: integer,
     _transfer_ownership(chain, contract, nft_id, owner_id, block_number);
 }
 
-operation transfer_batch_ownership(ownerships: list<nft_ownership>) {
-    for (idx in range(ownerships.size())) {
+operation transfer_batch_ownership(
+    chain:text, 
+    contract: byte_array, 
+    tokens: list<(token_id: integer, owner_id: byte_array, block_number: integer)>
+) {
+
+    /*
+    Update ownership of multiple NFTs in a single transaction.
+    */
+
+    for (idx in range(tokens.size())) {
         _transfer_ownership(
-            ownerships[idx].chain,
-            ownerships[idx].contract,
-            ownerships[idx].nft_id,
-            ownerships[idx].owner_id,
-            ownerships[idx].block_number
+            chain,
+            contract,
+            tokens[idx].token_id,
+            tokens[idx].owner_id,
+            tokens[idx].block_number
         );
     }
+
+    /*
+    Update trace status
+    */
+
+    val block_info = ownership @? { } ( @sort .block_number);
+    // update trace_status @? {.chain = chain, .contract = contract} ( 
+    //     last_block_number = 0, 
+    //     mined_block_number = 1
+    // );
+}
+
+operation report_mined(chain: text, contract: byte_array, status: boolean) {
+    // update trace_status @ {.chain = chain, .contract = contract} ( 
+    //     mined = status
+    // );
 }

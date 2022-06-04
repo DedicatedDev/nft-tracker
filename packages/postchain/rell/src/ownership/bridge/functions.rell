@@ -10,25 +10,26 @@ function _transfer_ownership(chain: name, contract: byte_array, nft_id: integer,
     
     before_transfer_ownership(chain, contract, nft_id, owner_id);
     
-    val old_ownership = ownership @? { .owner == owner, .nft == nft, .block_number >= block_number }; 
-    
-    if(empty(old_ownership) == false) {
-        return;
-    }
-
     val ownership = create ownership (
         owner = owner,
         nft = nft,
         block_number
     );
 
-    delete current_owner @? { nft };
-    create current_owner (
-        ownership = ownership,
-        nft = nft
-    );
+    // val recent_ownership = ownership @? { .owner == owner, .nft == nft, .block_number >= block_number }; 
+
+    // if(empty(recent_ownership) == false) {
+    //     return;
+    // }
+
+    // Chain current owner of nft
+    // delete current_owner @? { nft };
+    // create current_owner (
+    //     ownership = ownership,
+    //     nft = nft
+    // );
     
-    after_transfer_ownership(chain, contract, nft_id, owner_id);
+    // after_transfer_ownership(chain, contract, nft_id, owner_id);
 }
 
 
