@@ -16,20 +16,20 @@ function _transfer_ownership(chain: name, contract: byte_array, nft_id: integer,
         block_number
     );
 
-    // val recent_ownership = ownership @? { .owner == owner, .nft == nft, .block_number >= block_number }; 
-
-    // if(empty(recent_ownership) == false) {
-    //     return;
-    // }
+    val recent_ownership = ownership @* { .owner == owner, .nft == nft, .block_number > block_number }; 
+    
+    if(recent_ownership.size() != 0) {
+        return;
+    }
 
     // Chain current owner of nft
-    // delete current_owner @? { nft };
-    // create current_owner (
-    //     ownership = ownership,
-    //     nft = nft
-    // );
+    delete current_owner @? { nft };
+    create current_owner (
+        ownership = ownership,
+        nft = nft
+    );
     
-    // after_transfer_ownership(chain, contract, nft_id, owner_id);
+    after_transfer_ownership(chain, contract, nft_id, owner_id);
 }
 
 
@@ -55,7 +55,6 @@ function _get_nft_history(chain: text, contract: byte_array, id: integer, cursor
 function _get_user_nfts(owner_id: byte_array, cursor: page_cursor) {
     val owner = owner @? { owner_id };
     if (empty(owner)) return null_page();
-    
     val user_nfts = current_owner @* { 
         .ownership.owner == owner, 
         .rowid >= cursor.after_rowid
@@ -67,7 +66,8 @@ function _get_user_nfts(owner_id: byte_array, cursor: page_cursor) {
         ).to_gtv(),
         rowid = .rowid
     ) limit fetch_data_size(cursor);
-    
+
+
     return _make_page(user_nfts,cursor);
 }
 

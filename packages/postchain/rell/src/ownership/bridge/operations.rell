@@ -34,16 +34,22 @@ operation transfer_batch_ownership(
     /*
     Update trace status
     */
+    val block_info = ownership @* { 
+        .nft.chain == chain, 
+        .nft.contract == contract 
+    } ( @sort .block_number);
 
-    val block_info = ownership @? { } ( @sort .block_number);
-    // update trace_status @? {.chain = chain, .contract = contract} ( 
-    //     last_block_number = 0, 
-    //     mined_block_number = 1
-    // );
+    if(block_info.size()>0){
+        update trace_status @? {.chain == chain, .contract == contract} ( 
+            last_block_number = block_info[block_info.size() - 1],
+            mined_block_number = block_info[0]
+        );
+    }
+
 }
 
 operation report_mined(chain: text, contract: byte_array, status: boolean) {
-    // update trace_status @ {.chain = chain, .contract = contract} ( 
-    //     mined = status
-    // );
+    update trace_status @ {.chain == chain, .contract == contract} ( 
+        mined = status
+    );
 }

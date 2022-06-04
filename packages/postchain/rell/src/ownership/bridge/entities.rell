@@ -32,7 +32,7 @@ entity trace_status {
     chain: text;
     contract: byte_array;
     mutable last_block_number: integer;
-    mutable minted_block_number: integer;
+    mutable mined_block_number: integer;
     mutable mined: boolean;
 }
 
