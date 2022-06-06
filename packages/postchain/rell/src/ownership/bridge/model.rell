@@ -11,3 +11,4 @@ struct nft_ownership {
     owner_id: byte_array; 
     block_number: integer;
 }
+

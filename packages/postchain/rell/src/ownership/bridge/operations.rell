@@ -11,7 +11,7 @@ operation transfer_batch_ownership(
     contract_address: byte_array, 
     tokens: list<(token_id: integer, owner_id: byte_array, block_number: integer)>
 ) {
-
+    log(tokens);
     /*
     Update ownership of multiple NFTs in a single transaction.
     */
@@ -50,4 +50,8 @@ operation report_mined(chain: text, contract_address: byte_array, status: boolea
         mined = status
     );
     
+}
+
+operation test_params(ids:list<(id:integer, name: text, test: integer)>) {
+    log(ids);
 }

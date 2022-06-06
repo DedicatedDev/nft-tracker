@@ -13,6 +13,7 @@ import {
   ERC1155ABI,
   opAddNewContract,
   opTransferOwnerShip,
+  opTransferOwnerShips,
 } from "@evm/base";
 import { PromisePool } from "@supercharge/promise-pool";
 import * as dotenv from "dotenv";
@@ -21,6 +22,7 @@ import { Utils } from "../../utils/utils";
 import { EVENT_LOG_SIZE_EXCEEDED } from "../../const/error";
 import { MAXIMUM_COLLECT_NFTS, MAXIMUM_EVENT_SEARCH_DEEP } from "../../const/setting";
 import { async } from "rxjs";
+import { TokenInfo } from "@evm/base/lib/models/tokenInfo";
 dotenv.config({ path: path.join(__dirname, "../../../../../../", ".env") });
 export class MockOracle {
   private _client!: Blockchain;
@@ -57,12 +59,10 @@ export class MockOracle {
         };
         return contractInfo;
       });
-    console.log("====================================");
-    console.log(contracts);
-    console.log("====================================");
-    // this._getContracts(contracts);
-    // await this._fetchAllEvents();
-    // await this._watch();
+
+    this._getContracts(contracts);
+    await this._fetchAllEvents();
+    await this._watch();
   }
   async saveNewContract(contracts: ContractInfo[]) {
     const res = await PromisePool.withConcurrency(20)
@@ -95,37 +95,29 @@ export class MockOracle {
       .process(async (contract) => {
         if (contract.type == "ERC1155") {
           const eventFilter = contract.instance!.filters.TransferSingle();
-          const events = await this._fetchEvent(contract, eventFilter); //await contract.instance!.queryFilter(eventFilter);
-          return events.map((event) => this._treatEvent(event, contract)).flat();
+          await this._fetchEvent(contract, eventFilter); //await contract.instance!.queryFilter(eventFilter);
+          //return events.map((event) => this._treatEvent(event, contract)).flat();
         } else if (contract.type == "ERC721") {
           const eventFilter = contract.instance!.filters.Transfer();
-          const events = await this._fetchEvent(contract, eventFilter); //await contract.instance!.queryFilter(eventFilter);
-          return events.map((event) => this._treatEvent(event, contract)).flat();
+          await this._fetchEvent(contract, eventFilter); //await contract.instance!.queryFilter(eventFilter);
+          //return events.map((event) => this._treatEvent(event, contract)).flat();
         }
       });
 
     Utils.handlingBatchError(ownership.errors);
-    const ops = ownership.results.flat().filter((op): op is Operation => !!op);
-    await this._transferOwnerShip(ops);
+    //const ops = ownership.results.flat().filter((op): op is Operation => !!op);
+    //await this._transferOwnerShip(ops);
   }
   private async _treatEvents(events: ethers.Event[], contract: ContractInfo) {
-    const ops = events.map((event) => this._treatEvent(event, contract));
-    await this._transferOwnerShip(ops);
+    const tokenInfo = events.map((event) => this._treatEvent(event, contract));
+    const batchOperation = opTransferOwnerShips(contract, tokenInfo);
+    await this._transferOwnerShips(batchOperation);
   }
 
-  private async _fetchEvent(contract: ContractInfo, filter: ethers.EventFilter): Promise<ethers.Event[]> {
-    let events: ethers.Event[] = [];
-    try {
-      events = await contract.instance!.queryFilter(filter);
-    } catch (error) {
-      if (error instanceof Error && error.message.includes(EVENT_LOG_SIZE_EXCEEDED)) {
-        this._improvedPaginationEvents(contract, filter);
-        //events = await this._paginationEvents(contract, filter, []);
-      } else {
-        Utils.handlingError(error);
-      }
-    }
-    return events;
+  private async _fetchEvent(contract: ContractInfo, filter: ethers.EventFilter) {
+    const currentBlockNumber = await contract.instance!.provider.getBlockNumber();
+    await this._improvedPaginationEvents(contract, filter, currentBlockNumber, contract.lastBlockNumber!);
+    await this._improvedPaginationEvents(contract, filter, contract.lastBlockNumber!, 0);
   }
   private async _paginationEvents(
     contract: ethers.Contract,
@@ -198,7 +190,8 @@ export class MockOracle {
   private async _improvedPaginationEvents(
     contract: ContractInfo,
     filter: ethers.EventFilter,
-    lastBlockNumber?: number,
+    lastBlockNumber: number,
+    endBlockNumber: number,
     defaultSearchDeep?: number,
     maximumRetry?: number
   ) {
@@ -220,7 +213,10 @@ export class MockOracle {
     }
 
     try {
-      while (lastBlockNumber! > 0) {
+      while (lastBlockNumber! > endBlockNumber) {
+        if (maximumRetry < 0) {
+          break;
+        }
         const startBlockNumber: number = lastBlockNumber - defaultSearchDeep;
         let lastEvents = await contract.instance!.queryFilter(filter, startBlockNumber, lastBlockNumber);
         console.log(
@@ -233,17 +229,13 @@ export class MockOracle {
           `\n`
         );
         await this._treatEvents(lastEvents.reverse(), contract);
-
         if (lastEvents.length == 0) {
-          if (defaultSearchDeep < MAXIMUM_EVENT_SEARCH_DEEP && maximumRetry == 1) {
-            defaultSearchDeep = startBlockNumber;
-          } else if (defaultSearchDeep < MAXIMUM_EVENT_SEARCH_DEEP && maximumRetry > 1) {
-            defaultSearchDeep = MAXIMUM_EVENT_SEARCH_DEEP;
-          }
-        }
-        if (maximumRetry < 0 || lastBlockNumber == 0) {
-          lastBlockNumber = -1;
-          break;
+          maximumRetry = Math.floor(Math.log2(startBlockNumber));
+          defaultSearchDeep = startBlockNumber;
+          // if (defaultSearchDeep < MAXIMUM_EVENT_SEARCH_DEEP && maximumRetry == 1) {
+          // } else if (defaultSearchDeep < MAXIMUM_EVENT_SEARCH_DEEP && maximumRetry > 1) {
+          //   defaultSearchDeep = MAXIMUM_EVENT_SEARCH_DEEP;
+          // }
         }
         lastBlockNumber = startBlockNumber;
       }
@@ -253,6 +245,7 @@ export class MockOracle {
           contract,
           filter,
           lastBlockNumber,
+          endBlockNumber,
           Math.floor(defaultSearchDeep / 2),
           maximumRetry - 1
         );
@@ -270,7 +263,9 @@ export class MockOracle {
           console.log("====================================");
           console.log(operator, from, to, tokenId);
           console.log("====================================");
-          const lastBlockNumber = await contract.instance!.getBlockNumber();
+          const lastBlockNumber = await contract.instance!.provider.getBlockNumber();
+          //const op = opTransferOwnerShips(contract,[{tokenId: tokenId,owner: to,blockNumber:lastBlockNumber,}])
+          //this._transferOwnerShips(op);
           this._transferOwnerShip([opTransferOwnerShip(contract, tokenId, to, lastBlockNumber)]);
         });
       } else {
@@ -279,19 +274,30 @@ export class MockOracle {
           console.log("====================================");
           console.log(from, from, to, tokenId);
           console.log("====================================");
-          const lastBlockNumber = await contract.instance!.getBlockNumber();
+          const lastBlockNumber = await contract.instance!.provider.getBlockNumber();
           this._transferOwnerShip([opTransferOwnerShip(contract, tokenId, to, lastBlockNumber)]);
         });
       }
     });
   }
 
-  private _treatEvent(event: ethers.Event, contractInfo: ContractInfo): Operation {
+  // private _treatEvent(event: ethers.Event, contractInfo: ContractInfo): Operation {
+  //   const args = event.args!;
+  //   if (contractInfo.type == "ERC1155") {
+  //     return opTransferOwnerShip(contractInfo, +args[3].toString(), args[2], event.blockNumber);
+  //   } else {
+  //     return opTransferOwnerShip(contractInfo, +args[2], args[1], event.blockNumber);
+  //   }
+  // }
+
+  private _treatEvent(event: ethers.Event, contractInfo: ContractInfo): TokenInfo {
     const args = event.args!;
     if (contractInfo.type == "ERC1155") {
-      return opTransferOwnerShip(contractInfo, +args[3].toString(), args[2], event.blockNumber);
+      return { tokenId: +args[3].toString(), owner: args[2], blockNumber: event.blockNumber };
+      //return opTransferOwnerShip(contractInfo, +args[3].toString(), args[2], event.blockNumber);
     } else {
-      return opTransferOwnerShip(contractInfo, +args[2], args[1], event.blockNumber);
+      return { tokenId: +args[2], owner: args[1], blockNumber: event.blockNumber };
+      //return opTransferOwnerShip(contractInfo, +args[2], args[1], event.blockNumber);
     }
   }
 
@@ -302,5 +308,20 @@ export class MockOracle {
         return await this._client.call(op, this.user);
       });
     Utils.handlingBatchError(res.errors);
+  }
+
+  private async _transferOwnerShips(op: Operation) {
+    try {
+      await this._client.call(op, this.user);
+    } catch (error) {
+      Utils.handlingError(error);
+    }
+
+    // const res = await PromisePool.withConcurrency(20)
+    //   .for(op)
+    //   .process(async (op) => {
+    //     return ;
+    //   });
+    // Utils.handlingBatchError(res.errors);
   }
 }
