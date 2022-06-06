@@ -77,7 +77,7 @@ function test_transfer_ownerships()  {
             block_number = 100)
     ];
 
-    ownership.bridge.transfer_batch_ownership("eth_main",test_contract,batch_tokens)
+    ownership.bridge.transfer_batch_ownership("eth_main",test_contract,"ERC721",batch_tokens)
         .sign(admin)
         .run();
 

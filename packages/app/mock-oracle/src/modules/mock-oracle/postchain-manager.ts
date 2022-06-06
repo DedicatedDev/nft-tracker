@@ -1,4 +1,14 @@
-import { ContractInfo, opAddNewContract, PostChainClient, Queries, SupportChainType } from "@evm/base";
+import {
+  ContractInfo,
+  opAddNewContract,
+  opRecordTraceStatus,
+  opTransferOwnerShip,
+  opTransferOwnerShips,
+  PostChainClient,
+  Queries,
+  SupportChainType,
+} from "@evm/base";
+import { TokenInfo } from "@evm/base/lib/models/tokenInfo";
 import PromisePool from "@supercharge/promise-pool/dist";
 import { Blockchain, Operation, User } from "ft3-lib";
 import { Utils } from "../../utils/utils";
@@ -24,14 +34,8 @@ export class PostchainManager {
     return await this._client.query(Queries.GetContracts, { chain: chain });
   }
 
-  async transferOwnerShip(op: Operation[]) {
-    const res = await PromisePool.for(op).process(async (op) => {
-      return await this._client.call(op, this._user);
-    });
-    Utils.handlingBatchError(res.errors);
-  }
-
-  async transferOwnerShips(op: Operation) {
+  async transferOwnerShip(contract: ContractInfo, tokenId: number, to: string, lastBlockNumber: number) {
+    const op = opTransferOwnerShip(contract, tokenId, to, lastBlockNumber);
     try {
       await this._client.call(op, this._user);
     } catch (error) {
@@ -39,7 +43,17 @@ export class PostchainManager {
     }
   }
 
-  async reportDigResult() {
-    
+  async transferOwnerShips(contract: ContractInfo, tokenInfo: TokenInfo[]) {
+    const batchOp = opTransferOwnerShips(contract, tokenInfo);
+    try {
+      await this._client.call(batchOp, this._user);
+    } catch (error) {
+      Utils.handlingError(error);
+    }
+  }
+
+  async updateTraceStatus(contracts: ContractInfo[]) {
+    const op = opRecordTraceStatus(contracts);
+    await this._client.call(op, this._user);
   }
 }

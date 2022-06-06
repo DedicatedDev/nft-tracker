@@ -9,13 +9,13 @@ operation transfer_ownership(chain: name, contract: byte_array, nft_id: integer,
 operation transfer_batch_ownership(
     chain:text, 
     contract_address: byte_array, 
+    type: text,
     tokens: list<(token_id: integer, owner_id: byte_array, block_number: integer)>
 ) {
 
     /*
     Update ownership of multiple NFTs in a single transaction.
     */
-
     for (idx in range(tokens.size())) {
         _transfer_ownership(
             chain,
@@ -27,20 +27,15 @@ operation transfer_batch_ownership(
     }
 
     /*
-    Update trace status
+    Update trace status.
     */
-    val block_info = ownership @* { 
-        .nft.chain == chain, 
-        .nft.contract == contract_address 
-    } ( @sort .block_number);
-
-    if(block_info.size()>0){
-        val _contract = contract @? { .chain == chain, .address == contract_address } ?: _add_contract(chain, contract_address, "");
-        update trace_status @? { .contract == _contract} ( 
-            last_block_number = block_info[block_info.size() - 1],
-            mined_block_number = block_info[0]
-        );
-    }
-
+    _update_record_status(chain, contract_address,type);
 }
 
+operation update_trace_status(  
+   contracts: list<(chain:text, contract_address: byte_array, type:text)>
+) {
+    for (idx in range(contracts.size())) {
+        _update_record_status(contracts[idx].chain, contracts[idx].contract_address, contracts[idx].type);
+    }
+}

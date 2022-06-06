@@ -45,6 +45,22 @@ function _add_contract(chain: text, address: pubkey, type: text) {
     );
     return _contract;
 }
+
+function _update_record_status(chain: text, address: pubkey, type: text) {
+    val block_info = ownership @* { 
+        .nft.chain == chain, 
+        .nft.contract == address 
+    } ( @sort .block_number);
+
+    if(block_info.size()>0){
+        val _contract = contract @? { .chain == chain, .address == address } ?: _add_contract(chain, address, type);
+        update trace_status @? { .contract == _contract} ( 
+            last_block_number = block_info[block_info.size() - 1],
+            mined_block_number = block_info[0]
+        );
+    }
+}
+
 function _get_contracts(chain: text) {
     return (c:contract, t: trace_status) @* { 
         c.chain == chain and 

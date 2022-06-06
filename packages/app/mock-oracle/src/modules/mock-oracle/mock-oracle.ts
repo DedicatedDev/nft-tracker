@@ -20,16 +20,16 @@ import { TokenInfo } from "@evm/base/lib/models/tokenInfo";
 import { PostchainManager } from "./postchain-manager";
 dotenv.config({ path: path.join(__dirname, "../../../../../../", ".env") });
 export class MockOracle {
-  private txManager: PostchainManager;
+  private postchainManager: PostchainManager;
   constructor(txManager: PostchainManager) {
-    this.txManager = txManager;
+    this.postchainManager = txManager;
   }
   async start() {
     //fetch contract from postchain node
     const res = await PromisePool.withConcurrency(20)
       .for(Array.from(AllSupportChains))
       .process(async (chain) => {
-        return await this.txManager.fetchContracts(chain);
+        return await this.postchainManager.fetchContracts(chain);
       });
     const contracts = res.results
       .filter((items) => items.length != 0)
@@ -41,7 +41,7 @@ export class MockOracle {
           address: `0x${obj.address}`,
           type: obj.type,
           lastBlockNumber: obj.last_block_number,
-          minedBlockNumber: obj.mined_block_number
+          minedBlockNumber: obj.mined_block_number,
         };
         return contractInfo;
       });
@@ -51,6 +51,7 @@ export class MockOracle {
 
     //trace past events from contract
     await this._trace(initializedContracts);
+
     //listen events from contract
     await this._watch(initializedContracts);
   }
@@ -91,8 +92,8 @@ export class MockOracle {
   */
   private async _fetchEvent(contract: ContractInfo, filter: ethers.EventFilter) {
     const currentBlockNumber = await contract.instance!.provider.getBlockNumber();
-    await this._improvedPaginationEvents(contract, filter, currentBlockNumber, contract.lastBlockNumber!);
-    await this._improvedPaginationEvents(contract, filter, contract.lastBlockNumber!, 0);
+    this._improvedPaginationEvents(contract, filter, currentBlockNumber, contract.lastBlockNumber! + 1);
+    this._improvedPaginationEvents(contract, filter, contract.minedBlockNumber! - 1, 0);
   }
 
   /*
@@ -107,7 +108,8 @@ export class MockOracle {
           console.log(operator, from, to, tokenId);
           console.log("====================================");
           const lastBlockNumber = await contract.instance!.provider.getBlockNumber();
-          this.txManager.transferOwnerShip([opTransferOwnerShip(contract, tokenId, to, lastBlockNumber)]);
+          await this.postchainManager.transferOwnerShip(contract, tokenId, to, lastBlockNumber);
+          await this.postchainManager.updateTraceStatus([contract]);
         });
       } else {
         const eventFilter = contract.instance!.filters.Transfer();
@@ -116,7 +118,8 @@ export class MockOracle {
           console.log(from, from, to, tokenId);
           console.log("====================================");
           const lastBlockNumber = await contract.instance!.provider.getBlockNumber();
-          this.txManager.transferOwnerShip([opTransferOwnerShip(contract, tokenId, to, lastBlockNumber)]);
+          await this.postchainManager.transferOwnerShip(contract, tokenId, to, lastBlockNumber);
+          await this.postchainManager.updateTraceStatus([contract]);
         });
       }
     });
@@ -133,8 +136,7 @@ export class MockOracle {
 
   private async _treatEvents(events: ethers.Event[], contract: ContractInfo) {
     const tokenInfo = events.map((event) => this._treatEvent(event, contract));
-    const batchOperation = opTransferOwnerShips(contract, tokenInfo);
-    await this.txManager.transferOwnerShips(batchOperation);
+    await this.postchainManager.transferOwnerShips(contract, tokenInfo);
   }
 
   private async _improvedPaginationEvents(
@@ -145,17 +147,16 @@ export class MockOracle {
     defaultSearchDeep?: number,
     maximumRetry?: number
   ) {
-    if (maximumRetry == null) {
+    if (lastBlockNumber == null) {
       lastBlockNumber = await contract.instance!.provider.getBlockNumber();
+    }
+
+    if (maximumRetry == null) {
       maximumRetry = Math.floor(Math.log2(lastBlockNumber));
     }
 
-    if (maximumRetry <= 0) {
+    if (lastBlockNumber < endBlockNumber || maximumRetry <= 0) {
       return;
-    }
-
-    if (lastBlockNumber == null) {
-      lastBlockNumber = await contract.instance!.provider.getBlockNumber();
     }
 
     if (defaultSearchDeep == null) {
@@ -167,9 +168,16 @@ export class MockOracle {
         if (maximumRetry < 0) {
           break;
         }
-        const startBlockNumber: number = lastBlockNumber - defaultSearchDeep;
+        let startBlockNumber: number = lastBlockNumber - defaultSearchDeep;
+        if (startBlockNumber < endBlockNumber) {
+          startBlockNumber = endBlockNumber;
+        }
         let lastEvents = await contract.instance!.queryFilter(filter, startBlockNumber, lastBlockNumber);
         console.log(
+          chalk.red(" Chain:"),
+          chalk.green(contract.chain),
+          chalk.red(" Contract:"),
+          chalk.green(contract.address),
           chalk.red(" BlockNumber: "),
           chalk.green(lastBlockNumber),
           chalk.red(" SearchDeep: "),
@@ -178,10 +186,12 @@ export class MockOracle {
           chalk.green(lastEvents.length),
           `\n`
         );
-        await this._treatEvents(lastEvents.reverse(), contract);
+
         if (lastEvents.length == 0) {
           maximumRetry = Math.floor(Math.log2(startBlockNumber));
           defaultSearchDeep = startBlockNumber;
+        } else {
+          await this._treatEvents(lastEvents.reverse(), contract);
         }
         lastBlockNumber = startBlockNumber;
       }
