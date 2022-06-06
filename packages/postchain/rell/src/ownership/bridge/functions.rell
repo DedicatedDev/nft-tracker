@@ -41,8 +41,7 @@ function _add_contract(chain: text, address: pubkey, type: text) {
     create trace_status(
         _contract,
         last_block_number = 0, 
-        mined_block_number = 0,
-        mined = false
+        mined_block_number = 0
     );
     return _contract;
 }
@@ -54,8 +53,7 @@ function _get_contracts(chain: text) {
         .address, 
         .type, 
         .last_block_number,
-        .mined_block_number,
-        .mined
+        .mined_block_number
     );
 }
 
