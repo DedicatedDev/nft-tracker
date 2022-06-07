@@ -16,9 +16,8 @@ function _transfer_ownership(chain: name, contract: byte_array, nft_id: integer,
         block_number
     );
 
-    val recent_ownership = ownership @* { .owner == owner, .nft == nft, .block_number > block_number }; 
-
-    if(recent_ownership.size() != 0) {
+    val current_owner = current_owner @? { nft };
+    if (current_owner != null and current_owner.ownership.block_number > block_number) {
         return;
     }
 
