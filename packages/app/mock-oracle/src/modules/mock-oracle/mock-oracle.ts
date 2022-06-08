@@ -147,10 +147,6 @@ export class MockOracle {
     defaultSearchDeep?: number,
     maximumRetry?: number
   ) {
-    if (lastBlockNumber == null) {
-      lastBlockNumber = await contract.instance!.provider.getBlockNumber();
-    }
-
     if (maximumRetry == null) {
       maximumRetry = Math.floor(Math.log2(lastBlockNumber));
     }
