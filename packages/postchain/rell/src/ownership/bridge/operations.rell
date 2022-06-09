@@ -1,37 +1,41 @@
 operation add_contract(chain: text, address: pubkey, type: text) {
-    require(
-        op_context.is_signer(chain_context.args.admin_pubkey), 
-        "ownership: only admin can add contracts!"
-    );
-    
-    create contract(chain, address, type);
+    _add_contract(chain, address, type);
 }
 
 operation transfer_ownership(chain: name, contract: byte_array, nft_id: integer, owner_id: byte_array, block_number: integer) {
-    require(
-        op_context.is_signer(chain_context.args.admin_pubkey), 
-        "Owership: Only an oracle can transfer ownership"
-    );
+    _transfer_ownership(chain, contract, nft_id, owner_id, block_number);
+}
 
-    val owner = owner @? { owner_id } ?: create owner(owner_id);
-    val nft = nft @? { chain, contract, nft_id } ?: create nft (chain, contract, nft_id);
-    
-    before_transfer_ownership(chain, contract, nft_id, owner_id);
-    
-    val old_ownership = ownership @? { .owner == owner, .nft == nft, .block_number >= block_number }; 
-    require(empty(old_ownership), "ownership: ownership already exists!");
+operation transfer_batch_ownership(
+    chain:text, 
+    contract_address: byte_array, 
+    type: text,
+    tokens: list<(token_id: integer, owner_id: byte_array, block_number: integer)>
+) {
 
-    val ownership = create ownership (
-        owner = owner,
-        nft = nft,
-        block_number
-    );
+    /*
+    Update ownership of multiple NFTs in a single transaction.
+    */
+    for (idx in range(tokens.size())) {
+        _transfer_ownership(
+            chain,
+            contract_address,
+            tokens[idx].token_id,
+            tokens[idx].owner_id,
+            tokens[idx].block_number
+        );
+    }
 
-    delete current_owner @? { nft };
-    create current_owner (
-        ownership = ownership,
-        nft = nft
-    );
-    
-    after_transfer_ownership(chain, contract, nft_id, owner_id);
+    /*
+    Update trace status.
+    */
+    _update_record_status(chain, contract_address,type);
+}
+
+operation update_trace_status(  
+   contracts: list<(chain:text, contract_address: byte_array, type:text)>
+) {
+    for (idx in range(contracts.size())) {
+        _update_record_status(contracts[idx].chain, contracts[idx].contract_address, contracts[idx].type);
+    }
 }

@@ -3,3 +3,12 @@ struct page_cursor {
     page_size: integer;
     after_rowid: rowid;
 }
+
+struct nft_ownership {
+    chain: name; 
+    contract: byte_array; 
+    nft_id: integer; 
+    owner_id: byte_array; 
+    block_number: integer;
+}
+
