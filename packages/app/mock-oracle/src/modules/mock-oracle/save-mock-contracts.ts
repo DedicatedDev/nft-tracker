@@ -1,12 +1,10 @@
-import { MockOracle } from "./modules/mock-oracle/mock-oracle";
 import { ContractInfo } from "@evm/base";
-import { Utils } from "./utils/utils";
-import { PostchainManager } from "./modules/mock-oracle/postchain-manager";
+import { Utils } from "../../utils/utils";
+import { PostchainManager } from "./postchain-manager";
 
-const start = async () => {
+const saveMockContracts = async () => {
   const postchainManager = new PostchainManager();
   await postchainManager.init();
-  const client = new MockOracle(postchainManager);
   const mockContracts: ContractInfo[] = [
     {
       chain: "eth_main",
@@ -15,7 +13,7 @@ const start = async () => {
     },
     {
       chain: "eth_rinkeby",
-      address: "0xBE9D1fCd7680Eb40afCF763BAD1a53aDb67Eb87A",
+      address: "0xBE9D1fCd7680Eb40afCF763BAD1a53aDb67Eb87A".toLowerCase(),
       type: "ERC1155",
     },
   ];
@@ -24,6 +22,7 @@ const start = async () => {
   } catch (error) {
     Utils.handlingError(error);
   }
-  await client.start();
 };
-start();
+(async () => {
+  await saveMockContracts();
+})();

@@ -1,6 +1,4 @@
-import { Pool, PoolConfig } from "pg";
 import { ethers } from "ethers";
-import { Blockchain, Operation, User } from "ft3-lib";
 import chalk from "chalk";
 import {
   InfuraProvider,
@@ -8,52 +6,32 @@ import {
   ContractInfo,
   ERC721ABI,
   ERC1155ABI,
-  opTransferOwnerShip,
-  opTransferOwnerShips,
 } from "@evm/base";
 import { PromisePool } from "@supercharge/promise-pool";
 import * as dotenv from "dotenv";
 import path from "path";
-import { Utils } from "../../utils/utils";
-import { EVENT_LOG_SIZE_EXCEEDED } from "../../const/error";
+import { Utils } from "../../../utils/utils";
+import { EVENT_LOG_SIZE_EXCEEDED } from "../../../const/error";
 import { TokenInfo } from "@evm/base/lib/models/tokenInfo";
-import { PostchainManager } from "./postchain-manager";
-dotenv.config({ path: path.join(__dirname, "../../../../../../", ".env") });
-export class MockOracle {
+import { PostchainManager } from "../postchain-manager";
+dotenv.config({ path: path.join(__dirname, "../../../../../../../", ".env") });
+
+export class ContractsEventFilter {
   private postchainManager: PostchainManager;
-  constructor(txManager: PostchainManager) {
+  private contractInfos: ContractInfo[] = [];
+  constructor(contractInfos: ContractInfo[],txManager: PostchainManager) {
+    this.contractInfos = contractInfos;
     this.postchainManager = txManager;
+
   }
   async start() {
-    //fetch contract from postchain node
-    const res = await PromisePool.withConcurrency(20)
-      .for(Array.from(AllSupportChains))
-      .process(async (chain) => {
-        return await this.postchainManager.fetchContracts(chain);
-      });
-    const contracts = res.results
-      .filter((items) => items.length != 0)
-      .flat()
-      .map((json) => {
-        const obj = JSON.parse(JSON.stringify(json));
-        const contractInfo: ContractInfo = {
-          chain: obj.chain,
-          address: `0x${obj.address}`,
-          type: obj.type,
-          lastBlockNumber: obj.last_block_number,
-          minedBlockNumber: obj.mined_block_number,
-        };
-        return contractInfo;
-      });
-
     //get contract instance
-    const initializedContracts = await this._getContractInstance(contracts);
-
+    const initializedContracts = await this._getContractInstance(this.contractInfos);
     //trace past events from contract
     await this._trace(initializedContracts);
-
     //listen events from contract
     await this._watch(initializedContracts);
+
   }
 
   private async _getContractInstance(contracts: ContractInfo[]): Promise<ContractInfo[]> {
@@ -83,7 +61,6 @@ export class MockOracle {
           await this._fetchEvent(contract, eventFilter);
         }
       });
-
     Utils.handlingBatchError(ownership.errors);
   }
 

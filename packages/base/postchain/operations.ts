@@ -33,6 +33,18 @@ export function opTransferOwnerShips(contract: ContractInfo, tokens: TokenInfo[]
   );
 }
 
+export function opTransferComplexOwnerShips(tokens: TokenInfo[]): Operation {
+  const _tokens = tokens.map((token) => [
+    token!.chain,
+    token.contractAddress!.encodeByte(),
+    token.type!,
+    token.tokenId,
+    token.owner.encodeByte(),
+    token.blockNumber,
+  ]);
+  return new Operation("bridge.transfer_batch_complex_ownership", _tokens);
+}
+
 export function opRecordTraceStatus(contracts: ContractInfo[]): Operation {
   const data = contracts.map((contract) => [contract.chain, contract.address]);
   return new Operation("bridge.record_trace_status", data);

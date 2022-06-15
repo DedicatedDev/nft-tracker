@@ -2,6 +2,7 @@ import {
   ContractInfo,
   opAddNewContract,
   opRecordTraceStatus,
+  opTransferComplexOwnerShips,
   opTransferOwnerShip,
   opTransferOwnerShips,
   PostChainClient,
@@ -45,6 +46,15 @@ export class PostchainManager {
 
   async transferOwnerShips(contract: ContractInfo, tokenInfo: TokenInfo[]) {
     const batchOp = opTransferOwnerShips(contract, tokenInfo);
+    try {
+      await this._client.call(batchOp, this._user);
+    } catch (error) {
+      Utils.handlingError(error);
+    }
+  }
+
+  async transferComplexOwnerShips(tokenInfo: TokenInfo[]) {
+    const batchOp = opTransferComplexOwnerShips(tokenInfo);
     try {
       await this._client.call(batchOp, this._user);
     } catch (error) {

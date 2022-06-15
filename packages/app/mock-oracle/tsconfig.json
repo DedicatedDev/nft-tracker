@@ -1,18 +1,15 @@
-
 {
-    "compilerOptions": {
-      "target": "es2018",
-      "module": "commonjs",
-      "strict": true,
-      "esModuleInterop": true,
-      "outDir": "dist",
-      "declaration": true,
-      "resolveJsonModule": true,
-      "moduleResolution": "node",
-      "lib": ["es6"]
-    },
-    "include": [
-      "./src/"
-    ]
-  }
-  
+  "compilerOptions": {
+    "target": "es2018",
+    "module": "commonjs",
+    "strict": true,
+    "esModuleInterop": true,
+    "outDir": "dist",
+    "declaration": true,
+    "resolveJsonModule": true,
+    "allowJs": true,
+    "moduleResolution": "node",
+    "lib": ["es6"]
+  },
+  "include": ["./src/"]
+}

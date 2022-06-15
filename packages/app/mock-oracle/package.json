@@ -15,12 +15,14 @@
     "typescript": "^4.6.4"
   },
   "scripts": {
-    "start": "ts-node ./src/index.ts"
+    "start": "ts-node ./src/index.ts",
+    "start:work": "node -r ts-node ./src/index.ts"
   },
   "devDependencies": {
     "@types/cron": "^1.7.3",
     "@types/node-cron": "^3.0.1",
-    "axios": "^0.27.2"
+    "axios": "^0.27.2",
+    "@types/lodash": "^4.14.182"
   },
   "peerDependencies": {
     "@evm/base": "*",
