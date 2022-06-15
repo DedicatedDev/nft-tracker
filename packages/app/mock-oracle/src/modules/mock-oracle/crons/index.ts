@@ -4,7 +4,8 @@ import chalk from "chalk";
 import { Utils } from "../../../utils/utils";
 import { PostchainManager } from "../postchain-manager";
 import { ContractsEventFilter } from "./contract-event-filter";
-
+import cron from "node-cron";
+let isInProcess: boolean = false;
 const startContractsEventFilter = async () => {
   const postchainManager = new PostchainManager();
   await postchainManager.init();
@@ -34,8 +35,12 @@ const startContractsEventFilter = async () => {
   } catch (error) {
     Utils.handlingError(error);
   }
-  if (contracts.length != 0) {
-    startContractsEventFilter();
-  }
+  isInProcess = false;
 };
+cron.schedule("20 10 * * *", async () => {
+  if (!isInProcess) {
+    startContractsEventFilter();
+    isInProcess = true
+  }
+});
 startContractsEventFilter();

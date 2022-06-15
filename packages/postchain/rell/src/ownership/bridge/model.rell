@@ -12,3 +12,4 @@ struct nft_ownership {
     block_number: integer;
 }
 
+
