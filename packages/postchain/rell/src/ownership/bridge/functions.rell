@@ -10,7 +10,7 @@ function _transfer_ownership(chain: name, contract: byte_array, nft_id: integer,
     
     before_transfer_ownership(chain, contract, nft_id, owner_id);
     
-    val ownership = ownership @? { owner, nft } ?: create ownership (
+    val ownership = ownership @? { owner, nft, block_number } ?: create ownership (
         owner = owner,
         nft = nft,
         block_number
