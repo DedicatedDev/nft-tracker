@@ -1,5 +1,5 @@
-query get_contracts(chain: text) {
-    return _get_contracts(chain);
+query get_contracts() {
+    return _get_contracts();
 }
 
 query get_nft_history(chain: text, contract: byte_array, id: integer, cursor: text) {

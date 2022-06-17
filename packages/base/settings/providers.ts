@@ -4,7 +4,7 @@ import path from "path";
 dotenv.config({
   path: path.join(__dirname, "../../../../", ".env"),
 });
-export class InfuraProvider {
+export class Provider {
   providers(chain: SupportChainType): ProviderInfo {
     let httpUrl = process.env.ETH_RINKEBY;
     switch (chain) {

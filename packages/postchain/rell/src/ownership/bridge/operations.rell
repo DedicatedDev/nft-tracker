@@ -17,20 +17,20 @@ operation transfer_batch_complex_ownership(
     var chain: text = "";
     var type: text = "";
     var contract_address: byte_array;
-    for (idx in range(tokens.size())) {
+    for (token in tokens) {
         _transfer_ownership(
-            tokens[idx].chain,
-            tokens[idx].contract_address,
-            tokens[idx].token_id,
-            tokens[idx].owner_id,
-            tokens[idx].block_number
+            token.chain,
+            token.contract_address,
+            token.token_id,
+            token.owner_id,
+            token.block_number
         );
 
-        if(chain != tokens[idx].chain or type != tokens[idx].type) {
-            chain = tokens[idx].chain;
-            contract_address = tokens[idx].contract_address;
-            type = tokens[idx].type;
-            _update_record_status(chain, contract_address,type);
+        if(chain != token.chain or type != token.type) {
+            chain = token.chain;
+            contract_address = token.contract_address;
+            type = token.type;
+            _update_contract_sync_status(chain, contract_address,type);
         }
     }
     
@@ -45,25 +45,25 @@ operation transfer_batch_ownership(
     /*
     Update ownership of multiple NFTs in a single transaction.
     */
-    for (idx in range(tokens.size())) {
+    for (token in tokens) {
         _transfer_ownership(
             chain,
             contract_address,
-            tokens[idx].token_id,
-            tokens[idx].owner_id,
-            tokens[idx].block_number
+            token.token_id,
+            token.owner_id,
+            token.block_number
         );
     }
     /*
     Update trace status.
     */
-    _update_record_status(chain, contract_address,type);
+    _update_contract_sync_status(chain, contract_address,type);
 }
 
-operation update_trace_status(  
+operation update_contract_sync_status(  
    contracts: list<(chain:text, contract_address: byte_array, type:text)>
 ) {
-    for (idx in range(contracts.size())) {
-        _update_record_status(contracts[idx].chain, contracts[idx].contract_address, contracts[idx].type);
+    for (contract in contracts ) {
+        _update_contract_sync_status(contract.chain, contract.contract_address, contract.type);
     }
 }

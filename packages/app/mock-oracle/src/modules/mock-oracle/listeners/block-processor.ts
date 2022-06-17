@@ -1,4 +1,4 @@
-import { ContractInfo, InfuraProvider, SupportChainType } from "@evm/base";
+import { ContractInfo, Provider, SupportChainType } from "@evm/base";
 import { BigNumber, ethers } from "ethers";
 import { PromisePool } from "@supercharge/promise-pool";
 import { PostchainManager } from "../postchain-manager";
@@ -7,56 +7,54 @@ import { ExtendedProvider } from "../../../interface/provide-info";
 import _ from "lodash";
 import { Utils } from "../../../utils/utils";
 import chalk from "chalk";
+import { ERC1155TOKEN_TRANSFER_EVENT, ERC721TOKEN_TRANSFER_EVENT } from "../../../const/setting";
 
-export class BlockAggregator {
+export class BlockProcessor {
   private providers: ExtendedProvider[] = [];
-  private watchContractList: ContractInfo[];
   private watchContractAddressList: Set<string> = new Set<string>();
   private decoder = new ethers.utils.AbiCoder();
   private postchainManager: PostchainManager;
 
   constructor(watchContracts: ContractInfo[], txManager: PostchainManager) {
     watchContracts.map((contract) => {
-      const infuraManager = new InfuraProvider();
+      const infuraManager = new Provider();
       const infuraInfo = infuraManager.providers(contract.chain);
       const provider = new ethers.providers.JsonRpcBatchProvider(infuraInfo.endpoints.http);
       const extendedProvider: ExtendedProvider = { chain: contract.chain, provider: provider };
       this.providers.push(extendedProvider);
     });
-    this.watchContractList = watchContracts;
+
     watchContracts.map((contract) => {
       this.watchContractAddressList.add(contract.address.toLowerCase());
     });
     this.postchainManager = txManager;
   }
 
-  async processBlock(eProvider: ExtendedProvider, blockNumber: number, chain: SupportChainType) {
+  async processBlock(provider: ethers.providers.JsonRpcBatchProvider, blockNumber: number, chain: SupportChainType) {
     try {
-      const block = await eProvider.provider.getBlockWithTransactions(blockNumber);
+      const block = await provider.getBlockWithTransactions(blockNumber);
       const res = await PromisePool.withConcurrency(20)
         .for(block.transactions)
         .process(async (tx) => {
           return await this.treatTx(tx, chain);
         });
       const totalTokenInfos = res.results.map((tokens) => {
-        const tokenInfos = tokens.map((token) => {
-          if (token !== undefined) {
-            const tokenInfo: TokenInfo = {
-              tokenId: +token!.id.toString(),
-              owner: token!.owner,
-              blockNumber: blockNumber,
-              contractAddress: token!.address,
-              type: token!.type,
-              chain: token.chain,
-            };
-            return tokenInfo;
-          }
+        const tokenInfos = _.compact(tokens).map((token) => {
+          const tokenInfo: TokenInfo = {
+            tokenId: +token!.id.toString(),
+            owner: token!.owner,
+            blockNumber: blockNumber,
+            contractAddress: token!.address,
+            type: token!.type,
+            chain: token.chain,
+          };
+          return tokenInfo;
         });
-        return _.compact(tokenInfos);
+        return tokenInfos;
       });
       const integratedTokenInfos = totalTokenInfos.flat();
       if (integratedTokenInfos.length != 0) {
-        await this.postchainManager.transferComplexOwnerShips(integratedTokenInfos);
+        await this.postchainManager.transferComplexOwnerships(integratedTokenInfos);
       }
     } catch (error) {
       Utils.handlingError(error);
@@ -70,20 +68,11 @@ export class BlockAggregator {
       .process(async (log) => {
         const contractAddress = log.address.toLowerCase();
         if (this.watchContractAddressList.has(contractAddress)) {
-          if (log.topics.includes(ethers.utils.solidityKeccak256(["string"], ["Transfer(address,address,uint256)"]))) {
+          if (log.topics.includes(ERC721TOKEN_TRANSFER_EVENT)) {
             const tokenId: BigNumber = this.decoder.decode(["uint256"], log.topics[2])[0].toNumber();
             const owner: string = this.decoder.decode(["address"], log.topics[1])[0].toLowerCase();
-            console.log("============ERC721=============");
-            console.log(tokenId);
-            console.log(owner);
-            console.log("====================================");
             return { type: "ERC721", address: contractAddress, id: tokenId, owner: owner, chain: chain };
-          }
-          else if (
-            log.topics.includes(
-              ethers.utils.solidityKeccak256(["string"], ["TransferSingle(address,address,address,uint256,uint256)"])
-            )
-          ) {
+          } else if (log.topics.includes(ERC1155TOKEN_TRANSFER_EVENT)) {
             const tokenId: BigNumber = this.decoder.decode(["uint256"], log.data)[0].toNumber();
             const owner: string = this.decoder.decode(["address"], log.topics[3])[0].toLowerCase();
             return { type: "ERC1155", address: contractAddress, id: tokenId, owner: owner, chain: chain };
@@ -94,15 +83,18 @@ export class BlockAggregator {
     return res.results;
   }
 
-  async start() {
-    this.providers.map(async (p) => {
-      p.provider.on("block", (blockNumber: number) => {
+  async start(watchContracts: ContractInfo[]) {
+    watchContracts.forEach((contract) => {
+      const infuraManager = new Provider();
+      const infuraInfo = infuraManager.providers(contract.chain);
+      const provider = new ethers.providers.JsonRpcBatchProvider(infuraInfo.endpoints.http);
+      provider.on("block", (blockNumber: number) => {
         process.stdout.write(
-          `\r🕵  ${chalk.bold.red(p.chain.toUpperCase())}   : Script is at:  ${chalk.green(
+          `\r🕵  ${chalk.bold.red(contract.chain.toUpperCase())}   : Script is at:  ${chalk.green(
             BigNumber.from(blockNumber)
           )}\n`
         );
-        this.processBlock(p, blockNumber, p.chain);
+        this.processBlock(provider, blockNumber, contract.chain);
       });
     });
   }

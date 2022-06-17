@@ -2,9 +2,9 @@ import {
   ContractInfo,
   opAddNewContract,
   opRecordTraceStatus,
-  opTransferComplexOwnerShips,
-  opTransferOwnerShip,
-  opTransferOwnerShips,
+  opTransferComplexOwnerships,
+  opTransferOwnership,
+  opTransferOwnerships,
   PostChainClient,
   Queries,
   SupportChainType,
@@ -31,12 +31,24 @@ export class PostchainManager {
     Utils.handlingBatchError(res.errors);
   }
 
-  async fetchContracts(chain: SupportChainType): Promise<string[]> {
-    return await this._client.query(Queries.GetContracts, { chain: chain });
+  async fetchContracts(): Promise<ContractInfo[]> {
+    const res = await this._client.query(Queries.GetContracts, {});
+    const contracts = res.map((json: Object) => {
+      const obj = JSON.parse(JSON.stringify(json));
+      const contractInfo: ContractInfo = {
+        chain: obj.chain,
+        address: `0x${obj.address}`,
+        type: obj.type,
+        lastBlockNumber: obj.last_block_number,
+        minedBlockNumber: obj.mined_block_number,
+      };
+      return contractInfo;
+    });
+    return contracts;
   }
 
-  async transferOwnerShip(contract: ContractInfo, tokenId: number, to: string, lastBlockNumber: number) {
-    const op = opTransferOwnerShip(contract, tokenId, to, lastBlockNumber);
+  async transferOwnership(contract: ContractInfo, tokenId: number, to: string, lastBlockNumber: number) {
+    const op = opTransferOwnership(contract, tokenId, to, lastBlockNumber);
     try {
       await this._client.call(op, this._user);
     } catch (error) {
@@ -45,7 +57,7 @@ export class PostchainManager {
   }
 
   async transferOwnerShips(contract: ContractInfo, tokenInfo: TokenInfo[]) {
-    const batchOp = opTransferOwnerShips(contract, tokenInfo);
+    const batchOp = opTransferOwnerships(contract, tokenInfo);
     try {
       await this._client.call(batchOp, this._user);
     } catch (error) {
@@ -53,8 +65,8 @@ export class PostchainManager {
     }
   }
 
-  async transferComplexOwnerShips(tokenInfo: TokenInfo[]) {
-    const batchOp = opTransferComplexOwnerShips(tokenInfo);
+  async transferComplexOwnerships(tokenInfo: TokenInfo[]) {
+    const batchOp = opTransferComplexOwnerships(tokenInfo);
     try {
       await this._client.call(batchOp, this._user);
     } catch (error) {

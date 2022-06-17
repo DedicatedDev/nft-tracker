@@ -1,12 +1,6 @@
 import { ethers } from "ethers";
 import chalk from "chalk";
-import {
-  InfuraProvider,
-  AllSupportChains,
-  ContractInfo,
-  ERC721ABI,
-  ERC1155ABI,
-} from "@evm/base";
+import { Provider, ContractInfo, ERC721ABI, ERC1155ABI } from "@evm/base";
 import { PromisePool } from "@supercharge/promise-pool";
 import * as dotenv from "dotenv";
 import path from "path";
@@ -19,10 +13,9 @@ dotenv.config({ path: path.join(__dirname, "../../../../../../../", ".env") });
 export class ContractsEventFilter {
   private postchainManager: PostchainManager;
   private contractInfos: ContractInfo[] = [];
-  constructor(contractInfos: ContractInfo[],txManager: PostchainManager) {
+  constructor(contractInfos: ContractInfo[], txManager: PostchainManager) {
     this.contractInfos = contractInfos;
     this.postchainManager = txManager;
-
   }
   async start() {
     //get contract instance
@@ -33,7 +26,7 @@ export class ContractsEventFilter {
 
   private async _getContractInstance(contracts: ContractInfo[]): Promise<ContractInfo[]> {
     const initializedContracts = contracts.map((contractInfo) => {
-      const infuraManager = new InfuraProvider();
+      const infuraManager = new Provider();
       const infuraInfo = infuraManager.providers(contractInfo.chain);
       const provider = new ethers.providers.JsonRpcProvider(infuraInfo.endpoints.http);
       const contract = new ethers.Contract(
@@ -69,35 +62,6 @@ export class ContractsEventFilter {
     this._improvedPaginationEvents(contract, filter, currentBlockNumber, contract.lastBlockNumber! + 1);
     this._improvedPaginationEvents(contract, filter, contract.minedBlockNumber! - 1, 0);
   }
-
-  /*
-    Listen current event from contract
-  */
-  // private async _watch(contracts: ContractInfo[]) {
-  //   contracts.map(async (contract) => {
-  //     if (contract.type == "ERC1155") {
-  //       const eventFilter = contract.instance!.filters.TransferSingle();
-  //       contract.instance?.on(eventFilter, async (operator, from, to, tokenId) => {
-  //         console.log("===============ERC1155==============");
-  //         console.log(operator, from, to, tokenId);
-  //         console.log("====================================");
-  //         const lastBlockNumber = await contract.instance!.provider.getBlockNumber();
-  //         await this.postchainManager.transferOwnerShip(contract, tokenId, to, lastBlockNumber);
-  //         await this.postchainManager.updateTraceStatus([contract]);
-  //       });
-  //     } else {
-  //       const eventFilter = contract.instance!.filters.Transfer();
-  //       contract.instance?.on(eventFilter, async (from, to, tokenId) => {
-  //         console.log("===============ERC721===============");
-  //         console.log(from, from, to, tokenId);
-  //         console.log("====================================");
-  //         const lastBlockNumber = await contract.instance!.provider.getBlockNumber();
-  //         await this.postchainManager.transferOwnerShip(contract, tokenId, to, lastBlockNumber);
-  //         await this.postchainManager.updateTraceStatus([contract]);
-  //       });
-  //     }
-  //   });
-  // }
 
   private _treatEvent(event: ethers.Event, contractInfo: ContractInfo): TokenInfo {
     const args = event.args!;
