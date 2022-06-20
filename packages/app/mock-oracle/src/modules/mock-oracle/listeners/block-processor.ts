@@ -8,7 +8,6 @@ import _ from "lodash";
 import { Utils } from "../../../utils/utils";
 import chalk from "chalk";
 import { ERC1155TOKEN_TRANSFER_EVENT, ERC721TOKEN_TRANSFER_EVENT } from "../../../const/setting";
-import { add, save, complete, suite, cycle } from "benny";
 import path from "path";
 import { performance } from "perf_hooks";
 
