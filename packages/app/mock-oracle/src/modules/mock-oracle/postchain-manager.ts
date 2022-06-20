@@ -1,7 +1,7 @@
 import {
   ContractInfo,
   opAddNewContract,
-  opRecordTraceStatus,
+  opTraceSyncStatus,
   opTransferComplexOwnerships,
   opTransferOwnership,
   opTransferOwnerships,
@@ -75,7 +75,7 @@ export class PostchainManager {
   }
 
   async updateTraceStatus(contracts: ContractInfo[]) {
-    const op = opRecordTraceStatus(contracts);
+    const op = opTraceSyncStatus(contracts);
     await this._client.call(op, this._user);
   }
 }

@@ -1,7 +1,6 @@
 import chalk from "chalk";
 import { PostchainManager } from "../postchain-manager";
 import { BlockProcessor } from "./block-processor";
-
 const startBlockAggregator = async () => {
   const postchainManager = new PostchainManager();
   await postchainManager.init();

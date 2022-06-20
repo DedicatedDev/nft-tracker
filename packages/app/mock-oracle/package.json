@@ -12,7 +12,8 @@
     "chalk": "^4.1.0",
     "pg": "^8.7.3",
     "rxjs": "^7.5.5",
-    "typescript": "^4.6.4"
+    "typescript": "^4.6.4",
+    "benny": "^3.7.1"
   },
   "scripts": {
     "start": "ts-node ./src/index.ts",
@@ -28,9 +29,9 @@
     "@evm/base": "*",
     "@supercharge/promise-pool": "*",
     "ft3-lib": "*",
-    "typescript":"*",
+    "typescript": "*",
     "@types/node": "*",
-    "ts-node":"*",
+    "ts-node": "*",
     "ethers": "*",
     "dotenv": "*"
   }
