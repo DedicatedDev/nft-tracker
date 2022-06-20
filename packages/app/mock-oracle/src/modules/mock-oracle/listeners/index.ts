@@ -9,5 +9,4 @@ const startBlockAggregator = async () => {
   eventFilter.start(contracts);
   process.stdout.write(chalk.bold.green("BlockAggregator APP STARTED.\n"));
 };
-
 startBlockAggregator();

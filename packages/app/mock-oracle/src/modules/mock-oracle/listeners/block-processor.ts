@@ -12,20 +12,11 @@ import path from "path";
 import { performance } from "perf_hooks";
 
 export class BlockProcessor {
-  private providers: ExtendedProvider[] = [];
   private watchContractAddressList: Set<string> = new Set<string>();
   private decoder = new ethers.utils.AbiCoder();
   private postchainManager: PostchainManager;
 
   constructor(watchContracts: ContractInfo[], txManager: PostchainManager) {
-    watchContracts.map((contract) => {
-      const infuraManager = new Provider();
-      const infuraInfo = infuraManager.providers(contract.chain);
-      const provider = new ethers.providers.JsonRpcBatchProvider(infuraInfo.endpoints.http);
-      const extendedProvider: ExtendedProvider = { chain: contract.chain, provider: provider };
-      this.providers.push(extendedProvider);
-    });
-
     watchContracts.map((contract) => {
       this.watchContractAddressList.add(contract.address.toLowerCase());
     });
@@ -33,8 +24,6 @@ export class BlockProcessor {
   }
 
   async processBlock(provider: ethers.providers.JsonRpcBatchProvider, blockNumber: number, chain: SupportChainType) {
-  
-    const start = performance.now();
     try {
       const block = await provider.getBlockWithTransactions(blockNumber);
       const res = await PromisePool.withConcurrency(20)
@@ -85,7 +74,8 @@ export class BlockProcessor {
   }
 
   async start(watchContracts: ContractInfo[]) {
-    watchContracts.forEach((contract) => {
+    const uniqueChains = _.uniqBy(watchContracts, "chain");
+    uniqueChains.forEach((contract) => {
       const infuraManager = new Provider();
       const infuraInfo = infuraManager.providers(contract.chain);
       const provider = new ethers.providers.JsonRpcBatchProvider(infuraInfo.endpoints.http);

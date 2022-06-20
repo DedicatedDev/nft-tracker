@@ -90,7 +90,7 @@ export class ContractsEventFilter {
     }
 
     if (lastBlockNumber < endBlockNumber || maximumRetry <= 0) {
-      return;
+      return Promise.resolve();
     }
 
     if (defaultSearchDeep == null) {
@@ -100,7 +100,7 @@ export class ContractsEventFilter {
     try {
       while (lastBlockNumber! > endBlockNumber) {
         if (maximumRetry < 0) {
-          break;
+          Promise.resolve();
         }
         let startBlockNumber: number = lastBlockNumber - defaultSearchDeep;
         if (startBlockNumber < endBlockNumber) {
@@ -120,7 +120,6 @@ export class ContractsEventFilter {
           chalk.green(lastEvents.length),
           `\n`
         );
-
         if (lastEvents.length == 0) {
           maximumRetry = Math.floor(Math.log2(startBlockNumber));
           defaultSearchDeep = startBlockNumber;

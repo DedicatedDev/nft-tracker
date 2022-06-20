@@ -12,6 +12,16 @@ const saveMockContracts = async () => {
       type: "ERC721",
     },
     {
+      chain: "eth_main",
+      address: "0x19b86299c21505cdf59ce63740b240a9c822b5e4",
+      type: "ERC721",
+    },
+    {
+      chain: "eth_main",
+      address: "0xbce3781ae7ca1a5e050bd9c4c77369867ebc307e",
+      type: "ERC721",
+    },
+    {
       chain: "eth_rinkeby",
       address: "0xBE9D1fCd7680Eb40afCF763BAD1a53aDb67Eb87A".toLowerCase(),
       type: "ERC1155",
