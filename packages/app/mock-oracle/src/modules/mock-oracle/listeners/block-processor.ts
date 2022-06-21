@@ -3,13 +3,11 @@ import { BigNumber, ethers } from "ethers";
 import { PromisePool } from "@supercharge/promise-pool";
 import { PostchainManager } from "../postchain-manager";
 import { TokenInfo } from "@evm/base/lib/models/tokenInfo";
-import { ExtendedProvider } from "../../../interface/provide-info";
 import _ from "lodash";
 import { Utils } from "../../../utils/utils";
 import chalk from "chalk";
 import { ERC1155TOKEN_TRANSFER_EVENT, ERC721TOKEN_TRANSFER_EVENT } from "../../../const/setting";
-import path from "path";
-import { performance } from "perf_hooks";
+import { retryAsync } from "ts-retry";
 
 export class BlockProcessor {
   private watchContractAddressList: Set<string> = new Set<string>();
@@ -17,7 +15,7 @@ export class BlockProcessor {
   private postchainManager: PostchainManager;
 
   constructor(watchContracts: ContractInfo[], txManager: PostchainManager) {
-    watchContracts.map((contract) => {
+    watchContracts.forEach((contract) => {
       this.watchContractAddressList.add(contract.address.toLowerCase());
     });
     this.postchainManager = txManager;
@@ -25,7 +23,12 @@ export class BlockProcessor {
 
   async processBlock(provider: ethers.providers.JsonRpcBatchProvider, blockNumber: number, chain: SupportChainType) {
     try {
-      const block = await provider.getBlockWithTransactions(blockNumber);
+      const block = await retryAsync(
+        async () => {
+          return await provider.getBlockWithTransactions(blockNumber);
+        },
+        { maxTry: 3 }
+      );
       const res = await PromisePool.withConcurrency(20)
         .for(block.transactions)
         .process(async (tx) => {
@@ -50,27 +53,36 @@ export class BlockProcessor {
         await this.postchainManager.transferComplexOwnerships(integratedTokenInfos);
       }
     } catch (error) {
-      Utils.handlingError(error);
+      Utils.handlingError(error, "processBlock");
     }
   }
 
   async treatTx(tx: ethers.providers.TransactionResponse, chain: SupportChainType) {
-    const confirmedTx = await tx.wait();
-    const res = confirmedTx.logs.map((log) => {
-      const contractAddress = log.address.toLowerCase();
-      if (this.watchContractAddressList.has(contractAddress)) {
-        if (log.topics.includes(ERC721TOKEN_TRANSFER_EVENT)) {
-          const tokenId: BigNumber = this.decoder.decode(["uint256"], log.topics[2])[0].toNumber();
-          const owner: string = this.decoder.decode(["address"], log.topics[1])[0].toLowerCase();
-          return { type: "ERC721", address: contractAddress, id: tokenId, owner: owner, chain: chain };
-        } else if (log.topics.includes(ERC1155TOKEN_TRANSFER_EVENT)) {
-          const tokenId: BigNumber = this.decoder.decode(["uint256"], log.data)[0].toNumber();
-          const owner: string = this.decoder.decode(["address"], log.topics[3])[0].toLowerCase();
-          return { type: "ERC1155", address: contractAddress, id: tokenId, owner: owner, chain: chain };
+    try {
+      const confirmedTx = await retryAsync(
+        async () => {
+          return await tx.wait(1);
+        },
+        { maxTry: 3 }
+      );
+      const res = confirmedTx.logs.map((log) => {
+        const contractAddress = log.address.toLowerCase();
+        if (this.watchContractAddressList.has(contractAddress)) {
+          if (log.topics.includes(ERC721TOKEN_TRANSFER_EVENT)) {
+            const tokenId: BigNumber = this.decoder.decode(["uint256"], log.topics[2])[0].toNumber();
+            const owner: string = this.decoder.decode(["address"], log.topics[1])[0].toLowerCase();
+            return { type: "ERC721", address: contractAddress, id: tokenId, owner: owner, chain: chain };
+          } else if (log.topics.includes(ERC1155TOKEN_TRANSFER_EVENT)) {
+            const tokenId: BigNumber = this.decoder.decode(["uint256"], log.data)[0].toNumber();
+            const owner: string = this.decoder.decode(["address"], log.topics[3])[0].toLowerCase();
+            return { type: "ERC1155", address: contractAddress, id: tokenId, owner: owner, chain: chain };
+          }
         }
-      }
-    });
-    return res;
+      });
+      return res;
+    } catch (error) {
+      Utils.handlingError(error, "treatTx");
+    }
   }
 
   async start(watchContracts: ContractInfo[]) {

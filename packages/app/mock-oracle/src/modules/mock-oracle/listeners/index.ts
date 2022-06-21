@@ -2,8 +2,7 @@ import chalk from "chalk";
 import { PostchainManager } from "../postchain-manager";
 import { BlockProcessor } from "./block-processor";
 const startBlockAggregator = async () => {
-  const postchainManager = new PostchainManager();
-  await postchainManager.init();
+  const postchainManager = await PostchainManager.init();
   const contracts = await postchainManager.fetchContracts();
   const eventFilter = new BlockProcessor(contracts, postchainManager);
   eventFilter.start(contracts);

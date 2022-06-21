@@ -30,7 +30,6 @@ operation transfer_batch_complex_ownership(
             chain = token.chain;
             contract_address = token.contract_address;
             type = token.type;
-            _update_contract_sync_status(chain, contract_address,type);
         }
     }
     

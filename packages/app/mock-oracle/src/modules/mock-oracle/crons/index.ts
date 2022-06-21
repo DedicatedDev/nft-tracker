@@ -5,10 +5,8 @@ import { ContractsEventFilter } from "./contract-event-filter";
 import cron from "node-cron";
 let isInProcess: boolean = false;
 const startContractsEventFilter = async () => {
-  const postchainManager = new PostchainManager();
-  await postchainManager.init();
+  const postchainManager = await PostchainManager.init();
   const contracts = await postchainManager.fetchContracts();
-
   try {
     const eventFilter = new ContractsEventFilter(contracts, postchainManager);
     console.log(chalk.green.bold("ContractsEventFilter APP STARTED"));
@@ -21,7 +19,7 @@ const startContractsEventFilter = async () => {
 cron.schedule("20 10 * * *", async () => {
   if (!isInProcess) {
     startContractsEventFilter();
-    isInProcess = true
+    isInProcess = true;
   }
 });
 startContractsEventFilter();

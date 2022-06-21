@@ -8,6 +8,8 @@ import { Utils } from "../../../utils/utils";
 import { EVENT_LOG_SIZE_EXCEEDED } from "../../../const/error";
 import { TokenInfo } from "@evm/base/lib/models/tokenInfo";
 import { PostchainManager } from "../postchain-manager";
+import { retryAsync } from "ts-retry";
+import { RETRY_OPTION } from "../../../const/retry-options";
 dotenv.config({ path: path.join(__dirname, "../../../../../../../", ".env") });
 
 export class ContractsEventFilter {
@@ -58,9 +60,16 @@ export class ContractsEventFilter {
     Fetch past events from contract
   */
   private async _fetchEvent(contract: ContractInfo, filter: ethers.EventFilter) {
-    const currentBlockNumber = await contract.instance!.provider.getBlockNumber();
-    this._improvedPaginationEvents(contract, filter, currentBlockNumber, contract.lastBlockNumber! + 1);
-    this._improvedPaginationEvents(contract, filter, contract.minedBlockNumber! - 1, 0);
+    try {
+      const currentBlockNumber = await retryAsync(async () => {
+        return await contract.instance!.provider.getBlockNumber();
+      }, RETRY_OPTION);
+
+      this._improvedPaginationEvents(contract, filter, currentBlockNumber, contract.lastBlockNumber! + 1);
+      this._improvedPaginationEvents(contract, filter, contract.minedBlockNumber! - 1, 0);
+    } catch (error) {
+      Utils.handlingError(error);
+    }
   }
 
   private _treatEvent(event: ethers.Event, contractInfo: ContractInfo): TokenInfo {
@@ -68,7 +77,7 @@ export class ContractsEventFilter {
     if (contractInfo.type == "ERC1155") {
       return { tokenId: +args[3].toString(), owner: args[2], blockNumber: event.blockNumber };
     } else {
-      return { tokenId: +args[2], owner: args[1], blockNumber: event.blockNumber };
+      return { tokenId: +args[2].toString(), owner: args[1], blockNumber: event.blockNumber };
     }
   }
 
@@ -90,7 +99,7 @@ export class ContractsEventFilter {
     }
 
     if (lastBlockNumber < endBlockNumber || maximumRetry <= 0) {
-      return Promise.resolve();
+      return;
     }
 
     if (defaultSearchDeep == null) {
@@ -100,7 +109,7 @@ export class ContractsEventFilter {
     try {
       while (lastBlockNumber! > endBlockNumber) {
         if (maximumRetry < 0) {
-          Promise.resolve();
+          break;
         }
         let startBlockNumber: number = lastBlockNumber - defaultSearchDeep;
         if (startBlockNumber < endBlockNumber) {

@@ -12,15 +12,21 @@ import {
 import { TokenInfo } from "@evm/base/lib/models/tokenInfo";
 import PromisePool from "@supercharge/promise-pool/dist";
 import { Blockchain, Operation, User } from "ft3-lib";
+import { retryAsync } from "ts-retry";
+import { RETRY_OPTION } from "../../const/retry-options";
 import { Utils } from "../../utils/utils";
 
 export class PostchainManager {
   private _client!: Blockchain;
   private _user!: User;
-  async init() {
+  private constructor(client: Blockchain, user: User) {
+    this._client = client;
+    this._user = user;
+  }
+  static async init() {
     const init = await PostChainClient.getClient();
-    this._client = init.client;
-    this._user = PostChainClient.createUser(process.env.ORACLE_ADMIN);
+    const user = PostChainClient.createUser(process.env.ORACLE_ADMIN);
+    return new PostchainManager(init.client, user);
   }
   async addNewContract(contracts: ContractInfo[]) {
     const res = await PromisePool.withConcurrency(20)
@@ -50,7 +56,9 @@ export class PostchainManager {
   async transferOwnership(contract: ContractInfo, tokenId: number, to: string, lastBlockNumber: number) {
     const op = opTransferOwnership(contract, tokenId, to, lastBlockNumber);
     try {
-      await this._client.call(op, this._user);
+      await retryAsync(async () => {
+        await this._client.call(op, this._user);
+      }, RETRY_OPTION);
     } catch (error) {
       Utils.handlingError(error);
     }
@@ -59,7 +67,9 @@ export class PostchainManager {
   async transferOwnerShips(contract: ContractInfo, tokenInfo: TokenInfo[]) {
     const batchOp = opTransferOwnerships(contract, tokenInfo);
     try {
-      await this._client.call(batchOp, this._user);
+      await retryAsync(async () => {
+        await this._client.call(batchOp, this._user);
+      }, RETRY_OPTION);
     } catch (error) {
       Utils.handlingError(error);
     }
@@ -68,7 +78,9 @@ export class PostchainManager {
   async transferComplexOwnerships(tokenInfo: TokenInfo[]) {
     const batchOp = opTransferComplexOwnerships(tokenInfo);
     try {
-      await this._client.call(batchOp, this._user);
+      await retryAsync(async () => {
+        await this._client.call(batchOp, this._user);
+      }, RETRY_OPTION);
     } catch (error) {
       Utils.handlingError(error);
     }
@@ -76,6 +88,12 @@ export class PostchainManager {
 
   async updateTraceStatus(contracts: ContractInfo[]) {
     const op = opTraceSyncStatus(contracts);
-    await this._client.call(op, this._user);
+    try {
+      await retryAsync(async () => {
+        await this._client.call(op, this._user);
+      }, RETRY_OPTION);
+    } catch (error) {
+      Utils.handlingError(error);
+    }
   }
 }
