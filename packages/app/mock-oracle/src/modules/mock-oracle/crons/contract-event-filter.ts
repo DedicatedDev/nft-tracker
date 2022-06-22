@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
 import chalk from "chalk";
-import { Provider, ContractInfo, ERC721ABI, ERC1155ABI } from "@evm/base";
+import { Web3Provider, ContractInfo, ERC721ABI, ERC1155ABI } from "@evm/base";
 import { PromisePool } from "@supercharge/promise-pool";
 import * as dotenv from "dotenv";
 import path from "path";
@@ -28,9 +28,7 @@ export class ContractsEventFilter {
 
   private async _getContractInstance(contracts: ContractInfo[]): Promise<ContractInfo[]> {
     const initializedContracts = contracts.map((contractInfo) => {
-      const infuraManager = new Provider();
-      const infuraInfo = infuraManager.providers(contractInfo.chain);
-      const provider = new ethers.providers.JsonRpcProvider(infuraInfo.endpoints.http);
+      const provider = Web3Provider.jsonRPCProvider(contractInfo.chain);
       const contract = new ethers.Contract(
         contractInfo.address,
         contractInfo.type == "ERC1155" ? ERC1155ABI.abi : ERC721ABI.abi,

@@ -1,4 +1,4 @@
-import { ContractInfo, Provider, SupportChainType } from "@evm/base";
+import { ContractInfo, Web3Provider, SupportChainType } from "@evm/base";
 import { BigNumber, ethers } from "ethers";
 import { PromisePool } from "@supercharge/promise-pool";
 import { PostchainManager } from "../postchain-manager";
@@ -8,6 +8,7 @@ import { Utils } from "../../../utils/utils";
 import chalk from "chalk";
 import { ERC1155TOKEN_TRANSFER_EVENT, ERC721TOKEN_TRANSFER_EVENT } from "../../../const/setting";
 import { retryAsync } from "ts-retry";
+import { WSSProvider } from "./wss-provider";
 
 export class BlockProcessor {
   private watchContractAddressList: Set<string> = new Set<string>();
@@ -21,7 +22,7 @@ export class BlockProcessor {
     this.postchainManager = txManager;
   }
 
-  async processBlock(provider: ethers.providers.JsonRpcBatchProvider, blockNumber: number, chain: SupportChainType) {
+  async processBlock(provider: WSSProvider, blockNumber: number, chain: SupportChainType) {
     try {
       const block = await retryAsync(
         async () => {
@@ -88,9 +89,9 @@ export class BlockProcessor {
   async start(watchContracts: ContractInfo[]) {
     const uniqueChains = _.uniqBy(watchContracts, "chain");
     uniqueChains.forEach((contract) => {
-      const infuraManager = new Provider();
-      const infuraInfo = infuraManager.providers(contract.chain);
-      const provider = new ethers.providers.JsonRpcBatchProvider(infuraInfo.endpoints.http);
+      const providerInfo = Web3Provider.getProviderInfo(contract.chain);
+      const provider = new WSSProvider(providerInfo.endpoints.wss);
+      provider.safeConnect();
       provider.on("block", (blockNumber: number) => {
         process.stdout.write(
           `\r🕵  ${chalk.bold.red(contract.chain.toUpperCase())}   : Script is at:  ${chalk.green(

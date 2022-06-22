@@ -3,8 +3,7 @@ import { Utils } from "../../utils/utils";
 import { PostchainManager } from "./postchain-manager";
 
 const saveMockContracts = async () => {
-  const postchainManager = new PostchainManager();
-  await postchainManager.init();
+  const postchainManager =  await PostchainManager.init();
   const mockContracts: ContractInfo[] = [
     //CryptoPunks
     {
