@@ -36,3 +36,4 @@ export const test = async () => {
 (async () => {
   await test();
 })();
+

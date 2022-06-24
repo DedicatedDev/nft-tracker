@@ -10,7 +10,7 @@ function _transfer_ownership(chain: name, contract: byte_array, nft_id: integer,
     
     before_transfer_ownership(chain, contract, nft_id, owner_id);
     
-    val ownership = create ownership (
+    val ownership = ownership @? { owner, nft, block_number } ?: create ownership (
         owner = owner,
         nft = nft,
         block_number
@@ -45,7 +45,7 @@ function _add_contract(chain: text, address: pubkey, type: text) {
     return _contract;
 }
 
-function _update_record_status(chain: text, address: pubkey, type: text) {
+function _update_contract_sync_status(chain: text, address: pubkey, type: text) {
     val block_info = ownership @* { 
         .nft.chain == chain, 
         .nft.contract == address 
@@ -60,9 +60,8 @@ function _update_record_status(chain: text, address: pubkey, type: text) {
     }
 }
 
-function _get_contracts(chain: text) {
+function _get_contracts() {
     return (c:contract, t: trace_status) @* { 
-        c.chain == chain and 
         t.contract == c 
     } ( .chain, 
         .address, 

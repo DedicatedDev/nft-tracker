@@ -1,66 +1,34 @@
-import { Pool, PoolConfig } from "pg";
 import { ethers } from "ethers";
-import { Blockchain, Operation, User } from "ft3-lib";
 import chalk from "chalk";
-import {
-  InfuraProvider,
-  AllSupportChains,
-  ContractInfo,
-  ERC721ABI,
-  ERC1155ABI,
-  opTransferOwnerShip,
-  opTransferOwnerShips,
-} from "@evm/base";
+import { Web3Provider, ContractInfo, ERC721ABI, ERC1155ABI } from "@evm/base";
 import { PromisePool } from "@supercharge/promise-pool";
 import * as dotenv from "dotenv";
 import path from "path";
-import { Utils } from "../../utils/utils";
-import { EVENT_LOG_SIZE_EXCEEDED } from "../../const/error";
+import { Utils } from "../../../utils/utils";
+import { EVENT_LOG_SIZE_EXCEEDED } from "../../../const/error";
 import { TokenInfo } from "@evm/base/lib/models/tokenInfo";
-import { PostchainManager } from "./postchain-manager";
-dotenv.config({ path: path.join(__dirname, "../../../../../../", ".env") });
-export class MockOracle {
+import { PostchainManager } from "../postchain-manager";
+import { retryAsync } from "ts-retry";
+import { RETRY_OPTION } from "../../../const/retry-options";
+dotenv.config({ path: path.join(__dirname, "../../../../../../../", ".env") });
+
+export class ContractsEventFilter {
   private postchainManager: PostchainManager;
-  constructor(txManager: PostchainManager) {
+  private contractInfos: ContractInfo[] = [];
+  constructor(contractInfos: ContractInfo[], txManager: PostchainManager) {
+    this.contractInfos = contractInfos;
     this.postchainManager = txManager;
   }
   async start() {
-    //fetch contract from postchain node
-    const res = await PromisePool.withConcurrency(20)
-      .for(Array.from(AllSupportChains))
-      .process(async (chain) => {
-        return await this.postchainManager.fetchContracts(chain);
-      });
-    const contracts = res.results
-      .filter((items) => items.length != 0)
-      .flat()
-      .map((json) => {
-        const obj = JSON.parse(JSON.stringify(json));
-        const contractInfo: ContractInfo = {
-          chain: obj.chain,
-          address: `0x${obj.address}`,
-          type: obj.type,
-          lastBlockNumber: obj.last_block_number,
-          minedBlockNumber: obj.mined_block_number,
-        };
-        return contractInfo;
-      });
-
     //get contract instance
-    const initializedContracts = await this._getContractInstance(contracts);
-
+    const initializedContracts = await this._getContractInstance(this.contractInfos);
     //trace past events from contract
     await this._trace(initializedContracts);
-
-    //listen events from contract
-    await this._watch(initializedContracts);
   }
 
   private async _getContractInstance(contracts: ContractInfo[]): Promise<ContractInfo[]> {
     const initializedContracts = contracts.map((contractInfo) => {
-      const infuraManager = new InfuraProvider();
-      const infuraInfo = infuraManager.providers(contractInfo.chain);
-      const provider = new ethers.providers.JsonRpcProvider(infuraInfo.endpoints.http);
+      const provider = Web3Provider.jsonRPCProvider(contractInfo.chain);
       const contract = new ethers.Contract(
         contractInfo.address,
         contractInfo.type == "ERC1155" ? ERC1155ABI.abi : ERC721ABI.abi,
@@ -83,7 +51,6 @@ export class MockOracle {
           await this._fetchEvent(contract, eventFilter);
         }
       });
-
     Utils.handlingBatchError(ownership.errors);
   }
 
@@ -91,38 +58,16 @@ export class MockOracle {
     Fetch past events from contract
   */
   private async _fetchEvent(contract: ContractInfo, filter: ethers.EventFilter) {
-    const currentBlockNumber = await contract.instance!.provider.getBlockNumber();
-    this._improvedPaginationEvents(contract, filter, currentBlockNumber, contract.lastBlockNumber! + 1);
-    this._improvedPaginationEvents(contract, filter, contract.minedBlockNumber! - 1, 0);
-  }
+    try {
+      const currentBlockNumber = await retryAsync(async () => {
+        return await contract.instance!.provider.getBlockNumber();
+      }, RETRY_OPTION);
 
-  /*
-    Listen current event from contract
-  */
-  private async _watch(contracts: ContractInfo[]) {
-    contracts.map(async (contract) => {
-      if (contract.type == "ERC1155") {
-        const eventFilter = contract.instance!.filters.TransferSingle();
-        contract.instance?.on(eventFilter, async (operator, from, to, tokenId) => {
-          console.log("===============ERC1155==============");
-          console.log(operator, from, to, tokenId);
-          console.log("====================================");
-          const lastBlockNumber = await contract.instance!.provider.getBlockNumber();
-          await this.postchainManager.transferOwnerShip(contract, tokenId, to, lastBlockNumber);
-          await this.postchainManager.updateTraceStatus([contract]);
-        });
-      } else {
-        const eventFilter = contract.instance!.filters.Transfer();
-        contract.instance?.on(eventFilter, async (from, to, tokenId) => {
-          console.log("===============ERC721===============");
-          console.log(from, from, to, tokenId);
-          console.log("====================================");
-          const lastBlockNumber = await contract.instance!.provider.getBlockNumber();
-          await this.postchainManager.transferOwnerShip(contract, tokenId, to, lastBlockNumber);
-          await this.postchainManager.updateTraceStatus([contract]);
-        });
-      }
-    });
+      this._improvedPaginationEvents(contract, filter, currentBlockNumber, contract.lastBlockNumber! + 1);
+      this._improvedPaginationEvents(contract, filter, contract.minedBlockNumber! - 1, 0);
+    } catch (error) {
+      Utils.handlingError(error);
+    }
   }
 
   private _treatEvent(event: ethers.Event, contractInfo: ContractInfo): TokenInfo {
@@ -130,7 +75,7 @@ export class MockOracle {
     if (contractInfo.type == "ERC1155") {
       return { tokenId: +args[3].toString(), owner: args[2], blockNumber: event.blockNumber };
     } else {
-      return { tokenId: +args[2], owner: args[1], blockNumber: event.blockNumber };
+      return { tokenId: +args[2].toString(), owner: args[1], blockNumber: event.blockNumber };
     }
   }
 
@@ -182,7 +127,6 @@ export class MockOracle {
           chalk.green(lastEvents.length),
           `\n`
         );
-
         if (lastEvents.length == 0) {
           maximumRetry = Math.floor(Math.log2(startBlockNumber));
           defaultSearchDeep = startBlockNumber;

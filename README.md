@@ -3,7 +3,14 @@
 
 - yarn
 - yarn chromia:node
-- yarn start:oracle
+- yarn oracle:start
+  
+# Monitoring
+log checks
+- yarn oracle:logs
+monitoring app with dashboard
+- yarn oracle:monitor
+
 # How to test project?
 - yarn test:rell  
 added ecdsa library also. it is verified with solidity ecdsa library and ecdsa npm module. 
