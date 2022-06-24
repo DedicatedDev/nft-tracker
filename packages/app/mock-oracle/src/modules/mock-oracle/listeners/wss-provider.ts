@@ -3,7 +3,7 @@ import { ethers } from "ethers";
 export class WSSProvider extends ethers.providers.WebSocketProvider {
   private expectedPongBack;
   private keepAliveCheckInterval;
-  constructor(wssUrl: string, expectedPongBack: number = 1500000, keepAliveCheckInterval: number = 75000000) {
+  constructor(wssUrl: string, expectedPongBack: number = 15000, keepAliveCheckInterval: number = 75000) {
     super(wssUrl);
     this.expectedPongBack = expectedPongBack;
     this.keepAliveCheckInterval = keepAliveCheckInterval;
