@@ -21,8 +21,12 @@ export class UnitBlockProcessor {
       const block = await retryAsync(async () => {
         return await provider.getBlockWithTransactions(blockNumber);
       }, RETRY_OPTION);
+      const txs = block.transactions.filter((tx) => this.contractWhiteList.has(tx.to!));
+      console.log("====================================");
+      console.log(txs.map(tx=>tx.from));
+      console.log("====================================");
       const res = await PromisePool.withConcurrency(70)
-        .for(block.transactions)
+        .for(txs)
         .process(async (tx) => {
           return await this.treatTx(tx, chain);
         });
@@ -53,20 +57,19 @@ export class UnitBlockProcessor {
   private async treatTx(tx: ethers.providers.TransactionResponse, chain: SupportChainType) {
     try {
       const confirmedTx = await retryAsync(async () => {
-        return await tx.wait();
+        return await tx.wait(0);
       }, RETRY_OPTION);
+
       const res = confirmedTx.logs.map((log) => {
         const contractAddress = log.address.toLowerCase();
-        if (this.contractWhiteList.has(contractAddress)) {
-          if (log.topics.includes(ERC721TOKEN_TRANSFER_EVENT)) {
-            const tokenId: BigNumber = this.decoder.decode(["uint256"], log.topics[2])[0].toNumber();
-            const owner: string = this.decoder.decode(["address"], log.topics[1])[0].toLowerCase();
-            return { type: "ERC721", address: contractAddress, id: tokenId, owner: owner, chain: chain };
-          } else if (log.topics.includes(ERC1155TOKEN_TRANSFER_EVENT)) {
-            const tokenId: BigNumber = this.decoder.decode(["uint256"], log.data)[0].toNumber();
-            const owner: string = this.decoder.decode(["address"], log.topics[3])[0].toLowerCase();
-            return { type: "ERC1155", address: contractAddress, id: tokenId, owner: owner, chain: chain };
-          }
+        if (log.topics.includes(ERC721TOKEN_TRANSFER_EVENT)) {
+          const tokenId: BigNumber = this.decoder.decode(["uint256"], log.topics[2])[0].toNumber();
+          const owner: string = this.decoder.decode(["address"], log.topics[1])[0].toLowerCase();
+          return { type: "ERC721", address: contractAddress, id: tokenId, owner: owner, chain: chain };
+        } else if (log.topics.includes(ERC1155TOKEN_TRANSFER_EVENT)) {
+          const tokenId: BigNumber = this.decoder.decode(["uint256"], log.data)[0].toNumber();
+          const owner: string = this.decoder.decode(["address"], log.topics[3])[0].toLowerCase();
+          return { type: "ERC1155", address: contractAddress, id: tokenId, owner: owner, chain: chain };
         }
       });
       return res;

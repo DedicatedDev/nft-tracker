@@ -63,8 +63,8 @@ export class ContractsEventFilter {
         return await contract.instance!.provider.getBlockNumber();
       }, RETRY_OPTION);
 
-      this._improvedPaginationEvents(contract, filter, currentBlockNumber, contract.lastBlockNumber! + 1);
-      this._improvedPaginationEvents(contract, filter, contract.minedBlockNumber! - 1, 0);
+      this._getEvents(contract, filter, currentBlockNumber, contract.lastBlockNumber! + 1);
+      this._getEvents(contract, filter, contract.minedBlockNumber! - 1, 0);
     } catch (error) {
       Utils.handlingError(error);
     }
@@ -84,7 +84,7 @@ export class ContractsEventFilter {
     await this.postchainManager.transferOwnerShips(contract, tokenInfo);
   }
 
-  private async _improvedPaginationEvents(
+  private async _getEvents(
     contract: ContractInfo,
     filter: ethers.EventFilter,
     lastBlockNumber: number,
@@ -137,7 +137,7 @@ export class ContractsEventFilter {
       }
     } catch (error) {
       if (error instanceof Error && error.message.includes(EVENT_LOG_SIZE_EXCEEDED)) {
-        await this._improvedPaginationEvents(
+        await this._getEvents(
           contract,
           filter,
           lastBlockNumber,

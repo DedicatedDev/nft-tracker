@@ -49,7 +49,7 @@ export class PostchainManager {
       const obj = JSON.parse(JSON.stringify(json));
       const contractInfo: ContractInfo = {
         chain: obj.chain,
-        address: `0x${obj.address}`,
+        address: `0x${obj.address}`.toLowerCase(),
         type: obj.type,
         lastBlockNumber: obj.last_block_number,
         minedBlockNumber: obj.mined_block_number,

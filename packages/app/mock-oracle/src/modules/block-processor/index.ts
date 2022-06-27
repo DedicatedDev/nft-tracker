@@ -20,7 +20,7 @@ const listen = (contracts: ContractInfo[]) => {
 
 const _listenChain = async (chain: SupportChainType, whitelist: Set<string>) => {
   const listenWorker = await spawn<BlockListenWorker>(new Worker("./worker/listen-worker.ts"));
-  listenWorker.start(chain, whitelist);
+  listenWorker(chain, whitelist);
 };
 
 export const blockProcessorManager = {
@@ -31,28 +31,31 @@ export const blockProcessorManager = {
     const syncChains = syncInfos.map((syncInfo) => syncInfo.chain);
     const listenToContracts = contracts.filter((contract) => !syncChains.includes(contract.chain));
 
-    if (syncInfos.length != 0) {
-      const syncStatus = await PromisePool.withConcurrency(syncInfos.length)
-        .for(syncInfos)
-        .process(async (syncInfo) => {
-          const blockListenWorker = await spawn<BlockSyncWorker>(new Worker("./worker/sync-worker.ts"));
-          const whitelist = contracts
-            .filter((contract) => contract.chain === syncInfo.chain)
-            .map((contract) => contract.address);
-          blockListenWorker.start(syncInfo, new Set(whitelist));
-          return blockListenWorker;
-        });
-      syncStatus.results.map((sync) => {
-        sync.status().subscribe((status) => {
-          if (status.isSynced) {
-            _listenChain(status.syncInfo.chain, status.whitelist);
-          }
-        });
-      });
-    }
-    if (listenToContracts.length != 0) {
-      listen(listenToContracts);
-    }
+    // if (syncInfos.length != 0) {
+    //   const syncStatus = await PromisePool.withConcurrency(syncInfos.length)
+    //     .for(syncInfos)
+    //     .process(async (syncInfo) => {
+    //       const blockListenWorker = await spawn<BlockSyncWorker>(new Worker("./worker/sync-worker.ts"));
+    //       const whitelist = contracts
+    //         .filter((contract) => contract.chain === syncInfo.chain)
+    //         .map((contract) => contract.address);
+    //       blockListenWorker.start(syncInfo, new Set(whitelist));
+    //       return blockListenWorker;
+    //     });
+    //   syncStatus.results.map((sync) => {
+    //     sync.status().subscribe((status) => {
+    //       if (status.isSynced) {
+    //         Thread.terminate(sync);
+    //         _listenChain(status.syncInfo.chain, status.whitelist);
+    //       }
+    //     });
+    //   });
+    // }
+    listen(contracts);
+    // if (listenToContracts.length != 0) {
+
+    //   listen(listenToContracts);
+    // }
   },
 };
 export type BlockProcessorManager = typeof blockProcessorManager;

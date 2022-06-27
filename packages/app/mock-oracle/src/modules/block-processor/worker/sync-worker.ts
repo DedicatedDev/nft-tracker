@@ -25,9 +25,8 @@ export const blockSyncWorker = {
         chalk.green(currentBlockNumber - lastSyncBlockNumber),
         "\n"
       );
-      
       await unitBlockProcessor.processBlock(syncInfo.chain, lastSyncBlockNumber);
-      postchainManager.syncBlockNumber(syncInfo.chain, lastSyncBlockNumber);
+      await postchainManager.syncBlockNumber(syncInfo.chain, lastSyncBlockNumber);
     }
     syncSubject.next({ syncInfo: syncInfo, whitelist: contractList, isSynced: true });
     syncSubject.complete();
