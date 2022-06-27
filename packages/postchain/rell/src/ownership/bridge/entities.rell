@@ -33,4 +33,10 @@ entity trace_status {
     mutable mined_block_number: integer;
 }
 
+entity sync_status {
+    key chain;
+    chain: text;
+    mutable last_sync_block_number: integer;
+}
+
 

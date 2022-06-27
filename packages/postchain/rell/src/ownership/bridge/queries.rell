@@ -1,6 +1,9 @@
 query get_contracts() {
     return _get_contracts();
 }
+query get_last_sync_info() {
+    return _get_last_sync_info();
+}
 
 query get_nft_history(chain: text, contract: byte_array, id: integer, cursor: text) {
     return _get_nft_history(chain, contract,id, decode_cursor(cursor));

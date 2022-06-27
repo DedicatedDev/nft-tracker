@@ -1,5 +1,5 @@
 import { ContractInfo } from "@evm/base";
-import { Utils } from "../../utils/utils";
+import { Utils } from "../utils/utils";
 import { PostchainManager } from "./postchain-manager";
 
 const saveMockContracts = async () => {

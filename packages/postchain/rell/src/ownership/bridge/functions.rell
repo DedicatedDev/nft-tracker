@@ -71,6 +71,26 @@ function _get_contracts() {
     );
 }
 
+function _update_chain_sync_status(chain:text, last_sync_block_number: integer) {
+    var sync_info = sync_status @? { .chain == chain } ?: create sync_status(chain, last_sync_block_number);
+    sync_info.last_sync_block_number = last_sync_block_number;
+    // if(sync_info == null) {
+        
+    // } else {
+        
+        // update sync_status @? { .chain == chain} ( 
+        //     last_sync_block_number = last_sync_block_number
+        // );
+    //}
+}
+
+function _get_last_sync_info() {
+    return sync_status  @* { } ( 
+        .chain, 
+        .last_sync_block_number
+    );
+}
+
 function _get_nft_history(chain: text, contract: byte_array, id: integer, cursor: page_cursor) {
     val nft = nft @? { chain, contract, id };
     

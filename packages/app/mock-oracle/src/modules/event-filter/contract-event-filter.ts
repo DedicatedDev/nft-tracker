@@ -4,12 +4,12 @@ import { Web3Provider, ContractInfo, ERC721ABI, ERC1155ABI } from "@evm/base";
 import { PromisePool } from "@supercharge/promise-pool";
 import * as dotenv from "dotenv";
 import path from "path";
-import { Utils } from "../../../utils/utils";
-import { EVENT_LOG_SIZE_EXCEEDED } from "../../../const/error";
+import { Utils } from "../../utils/utils";
+import { EVENT_LOG_SIZE_EXCEEDED } from "../../const/error";
 import { TokenInfo } from "@evm/base/lib/models/tokenInfo";
 import { PostchainManager } from "../postchain-manager";
 import { retryAsync } from "ts-retry";
-import { RETRY_OPTION } from "../../../const/retry-options";
+import { RETRY_OPTION } from "../../const/retry-options";
 dotenv.config({ path: path.join(__dirname, "../../../../../../../", ".env") });
 
 export class ContractsEventFilter {

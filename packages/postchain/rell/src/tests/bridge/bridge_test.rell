@@ -218,3 +218,19 @@ function test_after_transfer_ownership_extension_is_called() {
     
     assert_true(extensions.ownership_transfer_extension_state.is_before_transfer_ownership_called);
 }
+
+function test_sync_update() {
+    val admin = admin_keypair();
+    ownership.bridge.update_chain_sync_status("rinkey",0)
+    .sign(admin)
+    .run();
+
+    ownership.bridge.update_chain_sync_status("rinkey",100)
+    .sign(admin)
+    .run();
+
+    val sync_info = ownership.bridge.get_last_sync_info();
+    assert_true(sync_info.size() == 1);
+    assert_equals(sync_info[0].chain, "rinkey");
+    assert_equals(sync_info[0].last_sync_block_number, 100);
+}

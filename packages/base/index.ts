@@ -11,3 +11,4 @@ export * from "./postchain/client";
 export * from "./postchain/byte";
 export * from "./models/chain";
 export * from "./models/contract";
+export * from "./models/chain-sync";

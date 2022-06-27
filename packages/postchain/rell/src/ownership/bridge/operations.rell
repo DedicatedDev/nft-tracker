@@ -66,3 +66,7 @@ operation update_contract_sync_status(
         _update_contract_sync_status(contract.chain, contract.contract_address, contract.type);
     }
 }
+
+operation update_chain_sync_status(chain:text, last_sync_block_number: integer) {
+    _update_chain_sync_status(chain, last_sync_block_number);
+}
