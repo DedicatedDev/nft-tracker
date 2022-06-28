@@ -26,16 +26,13 @@
     "postinstall": "patch-package && yarn base:build",
     "base:build": "cd packages/base && yarn build",
     "chromia:node": "ts-node packages/postchain/scripts/run-node.ts",
-    "test:rell": "ts-node packages/postchain/scripts/test-rell.ts",
+    "oracle:rell:test": "ts-node packages/postchain/scripts/test-rell.ts",
     "save:mock-contracts": "ts-node packages/app/mock-oracle/src/modules/save-mock-contracts.ts",
-    "eventsFilter": "ts-node packages/app/mock-oracle/src/modules/mock-oracle/crons/index.ts",
-    "blockAggregator": "ts-node packages/app/mock-oracle/src/modules/mock-oracle/listeners/index.ts",
-    "oracle:start": "yarn save:mock-contracts && yarn pm2 start \"yarn eventsFilter\" \"yarn blockAggregator\"",
     "oracle:stop": "yarn pm2 stop all",
     "oracle:monitor": "yarn pm2 plus",
     "oracle:logs": "yarn pm2 logs",
-    "test:app": "ts-node packages/app/mock-oracle/src/index.ts",
-    "start": "yarn pm2 start \"yarn test:app\""
+    "oracle:dev":"ts-node packages/app/mock-oracle/src/index.ts",
+    "oracle:start": "yarn save:mock-contracts && yarn pm2 start \"yarn oracle:dev\""
   },
   "dependencies": {
     "ft3-lib": "^3.4.2",
