@@ -11,5 +11,5 @@
     "moduleResolution": "node",
     "lib": ["es6"]
   },
-  "include": ["./src/", "src/index.ts", "src/workers"]
+  "include": ["src/index.ts"]
 }

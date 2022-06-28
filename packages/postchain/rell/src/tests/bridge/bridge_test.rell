@@ -218,19 +218,51 @@ function test_after_transfer_ownership_extension_is_called() {
     
     assert_true(extensions.ownership_transfer_extension_state.is_before_transfer_ownership_called);
 }
-
 function test_sync_update() {
     val admin = admin_keypair();
-    ownership.bridge.update_chain_sync_status("rinkey",0)
+    ownership.bridge.update_contract_sync_status(
+        "eth_main",
+        test_contract,
+        "ERC721",
+        10
+    ) 
+    .sign(admin)
+    .run();
+    var contracts = ownership.bridge.get_contracts();
+    assert_true(contracts.size() == 1);
+    assert_equals(contracts[0].chain, "eth_main");
+    assert_equals(contracts[0].last_block_number, 10);
+
+    ownership.bridge.update_contract_sync_status(
+        "eth_main",
+        test_contract,
+        "ERC721",
+        5
+    ) 
     .sign(admin)
     .run();
 
-    ownership.bridge.update_chain_sync_status("rinkey",100)
+    contracts = ownership.bridge.get_contracts();
+    assert_true(contracts.size() == 1);
+    assert_equals(contracts[0].chain, "eth_main");
+    assert_equals(contracts[0].last_block_number, 10);
+}
+function test_batch_sync_update() {
+    val admin = admin_keypair();
+    var sync_infos  = [
+        (
+            chain = "eth_main",
+            contract_address = test_contract,
+            type = "ERC721",
+            block_number = 10
+        )
+    ];
+    ownership.bridge.update_batch_sync_status(sync_infos)
     .sign(admin)
     .run();
 
-    val sync_info = ownership.bridge.get_last_sync_info();
-    assert_true(sync_info.size() == 1);
-    assert_equals(sync_info[0].chain, "rinkey");
-    assert_equals(sync_info[0].last_sync_block_number, 100);
+    val contracts = ownership.bridge.get_contracts();
+    assert_true(contracts.size() == 1);
+    assert_equals(contracts[0].chain, "eth_main");
+    assert_equals(contracts[0].last_block_number, 10);
 }

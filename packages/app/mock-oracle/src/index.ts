@@ -1,15 +1,17 @@
-import { spawn, Worker } from "threads";
-import { BlockProcessorManager } from "./modules/block-processor/index";
-import { ContractsEventFilterManager } from "./modules/event-filter";
-
+import { Pool, spawn, Thread, Worker } from "threads";
+import { EventListener } from "./modules/event-listener/index";
+import { ContractsEventFilterWorker } from "./modules/event-filter";
+import { BlockProcessorMode } from "./interface/block-processor-mode";
+import chalk from "chalk";
+//import { BlockListener } from "./modules/block-listener";
 const startModules = async () => {
-  const contractEventFilter = await spawn<ContractsEventFilterManager>(new Worker("./modules/crons/index.ts"));
-  await contractEventFilter.start();
-  console.log(`Start ContractEventFilter:`);
+  console.log(`\r🚀 ${chalk.bold.yellow(" Service Get Started.".toUpperCase())}`);
+  const eventFilterPool = Pool(() => spawn<ContractsEventFilterWorker>(new Worker("./modules/event-filter/index.ts")));
+  eventFilterPool.queue((eventFilter) => eventFilter());
+  await eventFilterPool.completed();
+  await eventFilterPool.terminate();
 
-  const blockProcessor = await spawn<BlockProcessorManager>(new Worker("./modules/block-processor/index"));
-  await blockProcessor.sync();
-  //console.log(`Start BlockProcessor: `);
-  //await Thread.terminate(contractEventFilter);
+  const eventListener = await spawn<EventListener>(new Worker("./modules/event-listener/index"));
+  await eventListener();
 };
 startModules();

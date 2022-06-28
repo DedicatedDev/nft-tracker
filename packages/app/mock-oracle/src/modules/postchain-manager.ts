@@ -1,7 +1,8 @@
 import {
   ContractInfo,
   opAddNewContract,
-  opTraceSyncStatus,
+  opSyncStatus,
+  opBatchSyncStatus,
   opTransferComplexOwnerships,
   opTransferOwnership,
   opTransferOwnerships,
@@ -51,8 +52,7 @@ export class PostchainManager {
         chain: obj.chain,
         address: `0x${obj.address}`.toLowerCase(),
         type: obj.type,
-        lastBlockNumber: obj.last_block_number,
-        minedBlockNumber: obj.mined_block_number,
+        lastBlockNumber: obj.last_block_number ?? 0,
       };
       return contractInfo;
     });
@@ -89,8 +89,12 @@ export class PostchainManager {
     await this._treatOperation(batchOp);
   }
 
-  async updateTraceStatus(contracts: ContractInfo[]) {
-    const op = opTraceSyncStatus(contracts);
+  async updateSyncStatus(contract: ContractInfo, lastBlockNumber: number) {
+    const op = opSyncStatus(contract, lastBlockNumber);
+    await this._treatOperation(op);
+  }
+  async updateBatchSyncStatus(contracts: ContractInfo[]) {
+    const op = opBatchSyncStatus(contracts);
     await this._treatOperation(op);
   }
   private async _treatOperation(op: Operation) {

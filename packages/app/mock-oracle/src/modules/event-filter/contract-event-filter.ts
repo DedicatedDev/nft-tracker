@@ -8,8 +8,7 @@ import { Utils } from "../../utils/utils";
 import { EVENT_LOG_SIZE_EXCEEDED } from "../../const/error";
 import { TokenInfo } from "@evm/base/lib/models/tokenInfo";
 import { PostchainManager } from "../postchain-manager";
-import { retryAsync } from "ts-retry";
-import { RETRY_OPTION } from "../../const/retry-options";
+import { BlockListener } from "../block-listener";
 dotenv.config({ path: path.join(__dirname, "../../../../../../../", ".env") });
 
 export class ContractsEventFilter {
@@ -24,6 +23,7 @@ export class ContractsEventFilter {
     const initializedContracts = await this._getContractInstance(this.contractInfos);
     //trace past events from contract
     await this._trace(initializedContracts);
+    await this._syncStatus();
   }
 
   private async _getContractInstance(contracts: ContractInfo[]): Promise<ContractInfo[]> {
@@ -59,12 +59,7 @@ export class ContractsEventFilter {
   */
   private async _fetchEvent(contract: ContractInfo, filter: ethers.EventFilter) {
     try {
-      const currentBlockNumber = await retryAsync(async () => {
-        return await contract.instance!.provider.getBlockNumber();
-      }, RETRY_OPTION);
-
-      this._getEvents(contract, filter, currentBlockNumber, contract.lastBlockNumber! + 1);
-      this._getEvents(contract, filter, contract.minedBlockNumber! - 1, 0);
+      await this._getEvents(contract, filter, contract.lastBlockNumber ?? 0);
     } catch (error) {
       Utils.handlingError(error);
     }
@@ -87,67 +82,59 @@ export class ContractsEventFilter {
   private async _getEvents(
     contract: ContractInfo,
     filter: ethers.EventFilter,
-    lastBlockNumber: number,
-    endBlockNumber: number,
-    defaultSearchDeep?: number,
-    maximumRetry?: number
+    startBlockNumber: number,
+    maximumRetry?: number,
+    searchDeep?: number
   ) {
+    const syncedBlockNumber = await BlockListener.currentBlockNumber(contract.chain);
+    if (searchDeep == null) {
+      searchDeep = syncedBlockNumber - startBlockNumber;
+    }
     if (maximumRetry == null) {
-      maximumRetry = Math.floor(Math.log2(lastBlockNumber));
+      maximumRetry = Math.floor(Math.log2(syncedBlockNumber - startBlockNumber));
     }
-
-    if (lastBlockNumber < endBlockNumber || maximumRetry <= 0) {
-      return;
-    }
-
-    if (defaultSearchDeep == null) {
-      defaultSearchDeep = lastBlockNumber;
-    }
-
     try {
-      while (lastBlockNumber! > endBlockNumber) {
+      while (startBlockNumber < syncedBlockNumber) {
         if (maximumRetry < 0) {
           break;
         }
-        let startBlockNumber: number = lastBlockNumber - defaultSearchDeep;
-        if (startBlockNumber < endBlockNumber) {
-          startBlockNumber = endBlockNumber;
-        }
-        let lastEvents = await contract.instance!.queryFilter(filter, startBlockNumber, lastBlockNumber);
+        let endBlockNumber: number = startBlockNumber + searchDeep;
+        let lastEvents = await contract.instance!.queryFilter(filter, startBlockNumber, endBlockNumber);
         console.log(
+          `\r🔎 ${chalk.bold.yellow("SYNC MODE:")}`,
           chalk.red(" Chain:"),
-          chalk.green(contract.chain),
+          chalk.green(contract.chain.toUpperCase()),
           chalk.red(" Contract:"),
           chalk.green(contract.address),
           chalk.red(" BlockNumber: "),
-          chalk.green(lastBlockNumber),
+          chalk.green(startBlockNumber),
           chalk.red(" SearchDeep: "),
-          chalk.green(defaultSearchDeep),
+          chalk.green(searchDeep),
           chalk.red(" CollectedEvents: "),
           chalk.green(lastEvents.length),
           `\n`
         );
-        if (lastEvents.length == 0) {
-          maximumRetry = Math.floor(Math.log2(startBlockNumber));
-          defaultSearchDeep = startBlockNumber;
+        if (lastEvents.length < 5000) {
+          searchDeep = 2 * searchDeep;
         } else {
           await this._treatEvents(lastEvents.reverse(), contract);
         }
-        lastBlockNumber = startBlockNumber;
+        startBlockNumber = endBlockNumber;
       }
     } catch (error) {
       if (error instanceof Error && error.message.includes(EVENT_LOG_SIZE_EXCEEDED)) {
-        await this._getEvents(
-          contract,
-          filter,
-          lastBlockNumber,
-          endBlockNumber,
-          Math.floor(defaultSearchDeep / 2),
-          maximumRetry - 1
-        );
+        await this._getEvents(contract, filter, startBlockNumber, maximumRetry - 1, Math.floor(searchDeep / 2));
       } else {
         Utils.handlingError(error);
       }
     }
+  }
+  async _syncStatus() {
+    const res = await PromisePool.for(this.contractInfos).process(async (contract) => {
+      const finalBlockNumber = await BlockListener.currentBlockNumber(contract.chain);
+      contract.lastBlockNumber = finalBlockNumber;
+      return contract;
+    });
+    await this.postchainManager.updateBatchSyncStatus(res.results);
   }
 }
