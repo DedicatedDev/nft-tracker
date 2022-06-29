@@ -9,7 +9,9 @@ const startModules = async () => {
   eventFilterPool.queue((eventFilter) => eventFilter());
   await eventFilterPool.completed();
   await eventFilterPool.terminate();
-  const eventListener = await spawn<EventListener>(new Worker("./modules/event-listener/index"));
-  await eventListener();
+
+  const eventListenPool = Pool(() => spawn<EventListener>(new Worker("./modules/event-listener/index")));
+  eventListenPool.queue((eventListener) => eventListener());
+  await eventFilterPool.completed();
 };
 startModules();

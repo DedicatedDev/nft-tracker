@@ -9,13 +9,14 @@ export const blockListenWorker = async (chain: SupportChainType, contractList: S
   const postchainManager = await PostchainManager.init();
   const unitEventProcessor = new UnitEventProcessor(postchainManager);
   const provider = Web3Provider.jsonRPCProvider(chain);
+  
   const eventER1155Filter: EventFilter = {
     topics: [ERC1155TOKEN_TRANSFER_EVENT],
   };
   const event721Filter: EventFilter = {
     topics: [ERC721TOKEN_TRANSFER_EVENT],
   };
-
+  
   provider.on(eventER1155Filter, async (event: ethers.Event) => {
     if (contractList.has(event.address.toLowerCase())) {
       console.log(
