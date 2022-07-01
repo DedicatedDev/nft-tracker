@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "es2018",
-    "module": "commonjs",
+    "module": "CommonJS",
     "strict": true,
     "esModuleInterop": true,
     "outDir": "dist",
@@ -11,5 +11,5 @@
     "moduleResolution": "node",
     "lib": ["es6"]
   },
-  "include": ["./src/", "index.ts"]
+  "include": ["src/index.ts"]
 }

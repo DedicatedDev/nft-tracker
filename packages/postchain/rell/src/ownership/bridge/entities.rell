@@ -27,10 +27,9 @@ entity current_owner {
     index ownership;
 }
 
-entity trace_status {
+entity sync_status {
     index contract;
     mutable last_block_number: integer;
-    mutable mined_block_number: integer;
 }
 
 

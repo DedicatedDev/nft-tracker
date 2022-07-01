@@ -1,9 +1,10 @@
 import { ContractInfo } from "@evm/base";
-import { Utils } from "../../utils/utils";
+import { Utils } from "../utils/utils";
 import { PostchainManager } from "./postchain-manager";
 
 const saveMockContracts = async () => {
-  const postchainManager =  await PostchainManager.init();
+  const postchainManager = await PostchainManager.init();
+  const addr = "0xBE9D1fCd7680Eb40afCF763BAD1a53aDb67Eb87A".toLowerCase();
   const mockContracts: ContractInfo[] = [
     //CryptoPunks
     {
@@ -29,7 +30,7 @@ const saveMockContracts = async () => {
       address: "0x49cf6f5d44e70224e2e23fdcdd2c053f30ada28b",
       type: "ERC721",
     },
-    
+
     //CloneX
     {
       chain: "eth_main",
@@ -53,7 +54,7 @@ const saveMockContracts = async () => {
     },
     {
       chain: "eth_rinkeby",
-      address: "0xBE9D1fCd7680Eb40afCF763BAD1a53aDb67Eb87A".toLowerCase(),
+      address: addr,
       type: "ERC1155",
     },
   ];

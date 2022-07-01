@@ -14,9 +14,6 @@ operation transfer_batch_complex_ownership(
     owner_id: byte_array,
     block_number: integer)>
 ) {
-    var chain: text = "";
-    var type: text = "";
-    var contract_address: byte_array;
     for (token in tokens) {
         _transfer_ownership(
             token.chain,
@@ -25,14 +22,13 @@ operation transfer_batch_complex_ownership(
             token.owner_id,
             token.block_number
         );
-
-        if(chain != token.chain or type != token.type) {
-            chain = token.chain;
-            contract_address = token.contract_address;
-            type = token.type;
-        }
+        _update_contract_sync_status(
+            token.chain,
+            token.contract_address,
+            token.type, 
+            token.block_number
+        );
     }
-    
 }
 
 operation transfer_batch_ownership(
@@ -44,6 +40,7 @@ operation transfer_batch_ownership(
     /*
     Update ownership of multiple NFTs in a single transaction.
     */
+    var max_block_number: integer = 0;
     for (token in tokens) {
         _transfer_ownership(
             chain,
@@ -52,17 +49,48 @@ operation transfer_batch_ownership(
             token.owner_id,
             token.block_number
         );
+        if(token.block_number > max_block_number) {
+            max_block_number = token.block_number;
+        }
     }
-    /*
-    Update trace status.
-    */
-    _update_contract_sync_status(chain, contract_address,type);
+    _update_contract_sync_status(chain,contract_address,type, max_block_number);
 }
 
-operation update_contract_sync_status(  
-   contracts: list<(chain:text, contract_address: byte_array, type:text)>
+operation  update_contract_sync_status(
+    chain:text,
+    contract_address: pubkey,
+    type: text, 
+    block_number:integer
 ) {
-    for (contract in contracts ) {
-        _update_contract_sync_status(contract.chain, contract.contract_address, contract.type);
+    _update_contract_sync_status(chain,contract_address,type,block_number);
+}
+
+operation update_batch_sync_status(
+    sync_infos: list<(
+        chain:text,
+        contract_address: pubkey,
+        type: text, 
+        block_number:integer
+    )>
+) {
+    for(sync_info in sync_infos) {
+        _update_contract_sync_status(
+            sync_info.chain,
+            sync_info.contract_address,
+            sync_info.type,
+            sync_info.block_number
+        );
     }
 }
+
+// operation update_contract_sync_status(  
+//    contracts: list<(chain:text, contract_address: byte_array, type:text)>
+// ) {
+//     for (contract in contracts ) {
+//         _update_contract_sync_status(contract.chain, contract.contract_address, contract.type);
+//     }
+// }
+
+// operation update_chain_sync_status(chain:text, last_sync_block_number: integer) {
+//     _update_chain_sync_status(chain, last_sync_block_number);
+// }

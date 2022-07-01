@@ -32,8 +32,8 @@ export namespace Web3Provider {
     const providerInfo = getProviderInfo(chain);
     return new ethers.providers.JsonRpcProvider(providerInfo.endpoints.http);
   }
-  export function wssRPCProvider(chain: SupportChainType): ethers.providers.JsonRpcProvider {
+  export function wssRPCProvider(chain: SupportChainType): ethers.providers.WebSocketProvider {
     const providerInfo = getProviderInfo(chain);
-    return new ethers.providers.JsonRpcProvider(providerInfo.endpoints.wss);
+    return new ethers.providers.WebSocketProvider(providerInfo.endpoints.wss);
   }
 }
