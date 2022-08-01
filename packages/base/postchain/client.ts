@@ -4,7 +4,7 @@ import axios from "axios";
 
 export const PostChainClient = {
   getClient: async () => {
-    const res = await axios.get(`${config.networks.localhost.nodeUrl}/brid/iid_0`);
+    const res = await axios.get(`${config.networks.localhost.nodeUrl}/brid/iid_1`);
     return {
       client: await new Postchain(config.networks.localhost.nodeUrl).blockchain(res.data),
       chainId: res.data,

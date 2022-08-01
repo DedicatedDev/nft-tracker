@@ -1,0 +1,46 @@
+# This is an example Starter pipeline configuration
+# Use a skeleton to build, test and deploy using manual and parallel steps
+# -----
+# You can specify a custom docker image from Docker Hub as your build environment.
+
+ image: snieking/postchain:latest
+    ports:
+      - 7740:7740
+pipelines:
+  default:
+    - parallel:
+      - step:
+          name: 'Install Dependencies'
+          script:
+            - yarn install
+      - step:
+          name: 'Lint-fix'
+          script:
+            - yarn lint-fix
+    - step:
+        name: 'Start Chromia node'
+        script:
+          - yarn chromia:node
+    - step:
+        name: 'Start Mock Oracle'
+        script:
+          - oracle:dev
+
+  pull-requests: 
+    - parallel:
+      - step:
+          name: 'Install Dependencies'
+          script:
+            - yarn install
+      - step:
+          name: 'Lint-fix'
+          script:
+            - yarn lint-fix
+    - step:
+        name: 'Start Chromia node'
+        script:
+          - yarn chromia:node
+    - step:
+        name: 'Start Mock Oracle'
+        script:
+          - oracle:dev 

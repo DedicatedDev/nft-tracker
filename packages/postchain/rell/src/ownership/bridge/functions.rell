@@ -31,7 +31,7 @@ function _transfer_ownership(chain: name, contract: byte_array, nft_id: integer,
     after_transfer_ownership(chain, contract, nft_id, owner_id);
 }
 
-function _add_contract(chain: text, address: pubkey, type: text) {
+function _add_contract(chain: text, address: byte_array, type: text) {
     require(
         op_context.is_signer(chain_context.args.admin_pubkey), 
         "ownership: only admin can add contracts!"
@@ -50,7 +50,7 @@ function _add_contract(chain: text, address: pubkey, type: text) {
     return _contract;
 }
 
-function _update_contract_sync_status(chain: text, address: pubkey, type: text, last_block_number:integer) {
+function _update_contract_sync_status(chain: text, address: byte_array, type: text, last_block_number:integer) {
     val _contract = contract @? { .chain == chain, .address == address } ?: _add_contract(chain, address, type);
     val status = sync_status @ { .contract == _contract};
     if(status.last_block_number < last_block_number) {

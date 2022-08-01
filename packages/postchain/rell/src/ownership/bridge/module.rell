@@ -2,5 +2,5 @@
 module;
 
 struct module_args {
-    admin_pubkey: pubkey;
+    admin_pubkey: byte_array;
 }

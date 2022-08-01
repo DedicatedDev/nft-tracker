@@ -1,4 +1,4 @@
-operation add_contract(chain: text, address: pubkey, type: text) {
+operation add_contract(chain: text, address: byte_array, type: text) {
     _add_contract(chain, address, type);
 }
 

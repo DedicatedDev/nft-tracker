@@ -4,7 +4,7 @@
         <test-config src="node-config-test.properties"/>
     </nodes>
     <chains>
-        <chain name="ownership" iid="0">
+        <chain name="ownership" iid="1">
             <config height="0">
 				<app module="ownership">
                     <args module="ownership.bridge">
