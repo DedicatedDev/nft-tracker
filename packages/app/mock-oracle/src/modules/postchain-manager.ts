@@ -7,7 +7,7 @@ import {
   opTransferOwnership,
   opTransferOwnerships,
   opSyncBlockNumber,
-  PostChainClient,
+  PostchainClient,
   Queries,
   SupportChainType,
   ChainSyncInfo,
@@ -29,8 +29,8 @@ export class PostchainManager {
   }
   static async init(): Promise<PostchainManager> {
     if (!PostchainManager.shared) {
-      const init = await PostChainClient.getClient();
-      const user = PostChainClient.createUser(process.env.ORACLE_ADMIN);
+      const init = await PostchainClient.getClient();
+      const user = PostchainClient.createUser(process.env.ORACLE_ADMIN);
       this.shared = new PostchainManager(init.client, user);
     }
     return this.shared;
