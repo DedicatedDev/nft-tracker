@@ -8,7 +8,7 @@ import { PostchainConfig as config} from "@evm/base";
 export class BinariesManager {
 
   private binariesBaseUrl: string = "http://www.chromia.dev/rellr";
-  private binariesFilename: string = `rellr-${config.rell.version}-dist.tar.gz`;
+  private binariesFilename: string = `rell-${config.rell.version}-dist.tar.gz`;
   private rellVersion = config.rell.version;
 
   private dir: string = path.join(os.homedir(), ".rell", "bin");
