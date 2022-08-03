@@ -3,7 +3,7 @@ import path from "path";
 import http from "http";
 import fs from "fs-extra";
 import os from "os";
-import { PostChainConfig as config} from "@evm/base";
+import { PostchainConfig as config} from "@evm/base";
 
 export class BinariesManager {
 

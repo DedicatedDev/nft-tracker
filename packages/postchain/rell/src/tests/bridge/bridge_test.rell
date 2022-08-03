@@ -11,7 +11,7 @@ val test_contract = x"29d8E29f41F82203b566047b5Ca4CD828F19E8E6";
 
 function test_add_contract()  {
     val admin = admin_keypair();
-    
+    log(rell.test.keypairs.bob);
     ownership.bridge.add_contract("eth_main", test_contract, "ERC1155")
         .sign(admin)
         .run();
