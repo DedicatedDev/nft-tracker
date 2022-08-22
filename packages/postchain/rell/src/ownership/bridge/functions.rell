@@ -97,8 +97,6 @@ function _get_user_nfts(owner_id: byte_array, cursor: page_cursor) {
         ).to_gtv(),
         rowid = .rowid
     ) limit fetch_data_size(cursor);
-
-
     return _make_page(user_nfts,cursor);
 }
 
